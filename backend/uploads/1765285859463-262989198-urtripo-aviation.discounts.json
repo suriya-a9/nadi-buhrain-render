@@ -1,0 +1,13 @@
+[{
+  "_id": {
+    "$oid": "68d10126f57a2e76211b4e83"
+  },
+  "status": "active",
+  "discount1to2": 0,
+  "discount3to4": 3,
+  "discount5to6": 5,
+  "updatedAt": {
+    "$date": "2025-09-22T08:01:19.796Z"
+  },
+  "__v": 0
+}]
