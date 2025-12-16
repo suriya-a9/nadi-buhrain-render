@@ -1,4 +1,11 @@
 import { NavLink } from "react-router-dom";
+import { TbLayoutDashboard } from "react-icons/tb";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FaRegFileImage, FaUsers } from "react-icons/fa";
+import { VscGitPullRequestGoToChanges, VscRequestChanges } from "react-icons/vsc";
+import { MdMiscellaneousServices, MdVerifiedUser } from "react-icons/md";
+import { CgUnavailable } from "react-icons/cg";
+import { SlBadge } from "react-icons/sl";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
     const linkClasses = ({ isActive }) =>
@@ -34,40 +41,45 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
                     <div className={sectionTitle}>General</div>
                     <NavLink to="/" className={linkClasses}>
-                        Dashboard
+                        <TbLayoutDashboard size={20} /> &nbsp;&nbsp;&nbsp;Dashboard
                     </NavLink>
                     <NavLink to="/splash-screen" className={linkClasses}>
-                        Splash screen
+                        <BsThreeDotsVertical size={20} /> &nbsp;&nbsp;&nbsp;Splash screen
                     </NavLink>
                     <NavLink to="/about-screen" className={linkClasses}>
-                        About screen
+                        <FaRegFileImage size={20} /> &nbsp;&nbsp;&nbsp;About screen
                     </NavLink>
 
                     <div className={sectionTitle}>Requests</div>
                     <NavLink to="/service-requests" className={linkClasses}>
-                        Service Requests List
+                        <VscGitPullRequestGoToChanges size={20} /> &nbsp;&nbsp;&nbsp;Service Requests List
                     </NavLink>
                     <NavLink to="/new-requests" className={linkClasses}>
-                        New Requests
+                        <VscRequestChanges size={20} /> &nbsp;&nbsp;&nbsp;New Requests
                     </NavLink>
 
                     <div className={sectionTitle}>Services</div>
                     <NavLink to="/services" className={linkClasses}>
-                        Service List
+                        <MdMiscellaneousServices size={20} /> &nbsp;&nbsp;&nbsp;Service List
                     </NavLink>
 
                     <div className={sectionTitle}>Users</div>
                     <NavLink to="/users" className={linkClasses}>
-                        Verified Users
+                        <MdVerifiedUser size={20} /> &nbsp;&nbsp;&nbsp;Verified Users
                     </NavLink>
 
                     <NavLink to="/not-verified" className={linkClasses}>
-                        Not Verified Users
+                        <CgUnavailable size={20} /> &nbsp;&nbsp;&nbsp;Not Verified Users
                     </NavLink>
 
                     <div className={sectionTitle}>Technicians</div>
                     <NavLink to="/technicians" className={linkClasses}>
-                        Technicians List
+                        <FaUsers size={20} /> &nbsp;&nbsp;&nbsp;Technicians List
+                    </NavLink>
+
+                    <div className={sectionTitle}>Points</div>
+                    <NavLink to="/points" className={linkClasses}>
+                       <SlBadge size={20} /> &nbsp;&nbsp;&nbsp;Points List
                     </NavLink>
                 </nav>
             </aside>

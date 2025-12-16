@@ -20,7 +20,8 @@ exports.addPoints = async (req, res, next) => {
 
 exports.listPoints = async (req, res, next) => {
     try {
-        const pointsList = await Points.find();
+        const pointsList = await Points.find()
+        .populate("accountType");
         res.status(200).json({
             data: pointsList
         })

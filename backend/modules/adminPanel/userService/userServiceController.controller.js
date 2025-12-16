@@ -154,7 +154,8 @@ exports.acceptedServiceRequests = async (req, res, next) => {
         })
             .populate("userId")
             .populate('serviceId')
-            .populate('issuesId');
+            .populate('issuesId')
+            .populate('technicianId');
         const formattedList = newServiceList.map(service => {
             const formattedTimestamps = {};
             Object.entries(service.statusTimestamps).forEach(([key, value]) => {
@@ -175,3 +176,21 @@ exports.acceptedServiceRequests = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.getTechnicianWorkStatus = async (req, res, next) => {
+    try {
+        const { userServiceId } = req.params;
+        const record = await TechnicianUserService.findOne({ userServiceId });
+        if (!record) return res.status(404).json({ message: "Not found" });
+        res.json({
+            status: record.status,
+            notes: record.notes,
+            media: record.media,
+            usedParts: record.usedParts,
+            workStartedAt: record.workStartedAt,
+            workDuration: record.workDuration
+        });
+    } catch (err) {
+        next(err);
+    }
+};

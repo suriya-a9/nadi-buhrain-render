@@ -228,7 +228,8 @@ exports.updateServiceStatus = async (req, res, next) => {
         }
         let updatedFields = {
             notes: notes || "",
-            $push: { media: { $each: mediaFiles } }
+            $push: { media: { $each: mediaFiles } },
+            status: "completed"
         };
         if (techUserService.workStartedAt) {
             const now = new Date();

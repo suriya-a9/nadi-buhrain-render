@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import Table from "../components/Table";
 import api from "../services/api";
+const getLastUpdatedStatus = (statusTimestamps = {}) => {
+    const entries = Object.entries(statusTimestamps)
+        .filter(([, value]) => value)
+        .sort((a, b) => new Date(a[1]) - new Date(b[1]));
+    return entries.length ? entries[entries.length - 1][0] : "-";
+};
 
 export default function ServiceRequestList() {
     const [requests, setRequests] = useState([]);
@@ -8,6 +14,18 @@ export default function ServiceRequestList() {
     const [selected, setSelected] = useState(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [statusUpdating, setStatusUpdating] = useState(false);
+    const [technicians, setTechnicians] = useState([]);
+    const [assigning, setAssigning] = useState(false);
+    const [selectedTechnician, setSelectedTechnician] = useState("");
+    const [techWorkStatus, setTechWorkStatus] = useState(null);
+    const [techWorkStatusLoading, setTechWorkStatusLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
+    const acceptedRequests = requests.filter(r => r.technicianAccepted === true);
+    const rejectedRequests = requests.filter(r => r.technicianAccepted === false && r.technicianId);
+    const notAssignedRequests = requests.filter(r => !r.technicianId);
+    let tabData = acceptedRequests;
+    if (activeTab === 1) tabData = rejectedRequests;
+    if (activeTab === 2) tabData = notAssignedRequests;
     const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
     const loadRequests = async () => {
         setLoading(true);
@@ -23,9 +41,17 @@ export default function ServiceRequestList() {
     useEffect(() => {
         loadRequests();
     }, []);
+    useEffect(() => {
+        if (detailsOpen && selected && !selected.technicianId) {
+            api.post("/technician/list")
+                .then(res => setTechnicians(res.data.data || []))
+                .catch(() => setTechnicians([]));
+        }
+    }, [detailsOpen, selected]);
     const handleView = (row) => {
         setSelected(row);
         setDetailsOpen(true);
+        setSelectedTechnician("");
     };
 
     const handleStatusUpdate = async (id, newStatus, reason) => {
@@ -42,7 +68,22 @@ export default function ServiceRequestList() {
             setStatusUpdating(false);
         }
     };
-
+    const handleAssignTechnician = async () => {
+        if (!selectedTechnician) return;
+        setAssigning(true);
+        try {
+            await api.post("/user-service-list/assign-technician", {
+                serviceId: selected._id,
+                technicianId: selectedTechnician
+            });
+            await loadRequests();
+            setDetailsOpen(false);
+        } catch (err) {
+            alert("Failed to assign technician");
+        } finally {
+            setAssigning(false);
+        }
+    };
     const renderMedia = (mediaArr = []) => {
         if (!mediaArr.length) return <div className="text-gray-500">No media</div>;
         return (
@@ -74,28 +115,80 @@ export default function ServiceRequestList() {
             </div>
         );
     };
+    const StatusDropdown = ({ statusTimestamps = {} }) => {
+        const lastStatus = getLastUpdatedStatus(statusTimestamps);
 
+        return (
+            <select
+                className="border rounded px-2 py-1 text-sm bg-gray-100 cursor-pointer"
+                value={lastStatus}
+                onChange={() => { }}
+            >
+                {Object.entries(statusTimestamps).map(([status, time]) => (
+                    <option key={status} value={status}>
+                        {status} {time ? `(${time})` : ""}
+                    </option>
+                ))}
+            </select>
+        );
+    };
+    useEffect(() => {
+        if (detailsOpen && selected?.technicianAccepted && selected?._id) {
+            setTechWorkStatusLoading(true);
+            setTechWorkStatus(null);
+            api.get(`/user-service-list/technician-work-status/${selected._id}`)
+                .then(res => setTechWorkStatus(res.data))
+                .catch(() => setTechWorkStatus(null))
+                .finally(() => setTechWorkStatusLoading(false));
+        }
+    }, [detailsOpen, selected]);
     return (
         <div>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Service Requests List</h2>
             </div>
+            <div className="mb-4 flex gap-2">
+                <button
+                    className={`px-4 py-2 rounded ${activeTab === 0 ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+                    onClick={() => setActiveTab(0)}
+                >
+                    Technician Accepted
+                </button>
+                <button
+                    className={`px-4 py-2 rounded ${activeTab === 1 ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+                    onClick={() => setActiveTab(1)}
+                >
+                    Technician Pending / Rejected
+                </button>
+                <button
+                    className={`px-4 py-2 rounded ${activeTab === 2 ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+                    onClick={() => setActiveTab(2)}
+                >
+                    Technician Not Assigned
+                </button>
+            </div>
+
             <Table
                 columns={[
                     { title: "Request ID", key: "serviceRequestID" },
                     { title: "Requested By", key: "userId.basicInfo.fullName" },
                     { title: "Service Name", key: "serviceId.name" },
                     { title: "Issue Name", key: "issuesId.issue" },
-                    { title: "Feedback", key: "feedback" },
-                    { title: "Scheduled Date", key: "scheduleService" },
                     {
                         title: "Is Urgent?",
                         dataIndex: "immediateAssistance",
                         key: "immediateAssistance",
                         render: (value) => (value ? "Yes" : "No"),
                     },
+                    {
+                        title: "Status",
+                        key: "statusTimestamps",
+                        render: (_, row) => (
+                            <StatusDropdown statusTimestamps={row.statusTimestamps} />
+                        ),
+                    },
                 ]}
-                data={requests}
+                data={tabData}
                 actions={(row) => (
                     <button
                         className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
@@ -105,7 +198,9 @@ export default function ServiceRequestList() {
                     </button>
                 )}
             />
-            {loading && <div className="text-sm text-gray-500 mt-2">Loading...</div>}
+            {!loading && tabData.length === 0 && (
+                <div className="text-center text-gray-500 mt-4">No requests in this category.</div>
+            )}
             {detailsOpen && selected && (
                 <div className="fixed inset-0 z-50 overflow-auto">
                     <div className="min-h-screen flex items-start justify-center py-8 px-4">
@@ -156,6 +251,26 @@ export default function ServiceRequestList() {
                                     <div className="font-medium">Status</div>
                                     <div className="text-gray-700 dark:text-gray-300">{selected.serviceStatus}</div>
                                 </div>
+                                <div>
+                                    <div className="font-medium">Assigned Technician</div>
+                                    <div className="text-gray-700 dark:text-gray-300">
+                                        {selected.technicianId
+                                            ? (selected.technicianId.firstName
+                                                ? `${selected.technicianId.firstName} ${selected.technicianId.lastName || ""} (${selected.technicianId.email || ""})`
+                                                : selected.technicianId)
+                                            : "Not Assigned"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="font-medium">Technician Assignment Status</div>
+                                    <div className="text-gray-700 dark:text-gray-300">
+                                        {selected.technicianAccepted === true
+                                            ? "Accepted"
+                                            : selected.technicianId
+                                                ? "Pending"
+                                                : "-"}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mb-4">
@@ -174,6 +289,91 @@ export default function ServiceRequestList() {
                                     ))}
                                 </div>
                             </div>
+
+                            {!selected.technicianId && (
+                                <div className="mb-4">
+                                    <div className="font-medium mb-2">Assign Technician</div>
+                                    <div className="flex gap-2 items-center">
+                                        <select
+                                            className="border rounded px-2 py-1"
+                                            value={selectedTechnician}
+                                            onChange={e => setSelectedTechnician(e.target.value)}
+                                        >
+                                            <option value="">Select Technician</option>
+                                            {technicians.map(tech => (
+                                                <option key={tech._id} value={tech._id}>
+                                                    {tech.firstName} {tech.lastName} ({tech.email})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            className="px-3 py-1 bg-blue-600 text-white rounded"
+                                            disabled={!selectedTechnician || assigning}
+                                            onClick={handleAssignTechnician}
+                                        >
+                                            {assigning ? "Assigning..." : "Assign"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {selected.technicianAccepted === true && (
+                                <div className="mb-4">
+                                    <div className="font-medium">Technician Work Status</div>
+                                    <div className="text-gray-700 dark:text-gray-300">
+                                        {techWorkStatusLoading
+                                            ? "Loading..."
+                                            : techWorkStatus
+                                                ? <>
+                                                    <div>
+                                                        <span className="capitalize font-semibold">{techWorkStatus.status}</span>
+                                                        {techWorkStatus.notes && (
+                                                            <div className="text-xs text-gray-500 mt-1">Notes: {techWorkStatus.notes}</div>
+                                                        )}
+                                                    </div>
+                                                    {techWorkStatus.media && techWorkStatus.media.length > 0 && (
+                                                        <div className="mt-2">
+                                                            <div className="font-medium">Technician Media</div>
+                                                            <ul className="list-disc ml-4">
+                                                                {techWorkStatus.media.map((file, idx) => (
+                                                                    <li key={idx}>
+                                                                        <a
+                                                                            href={`${API_BASE}/uploads/${file}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-blue-600 underline"
+                                                                        >
+                                                                            {file}
+                                                                        </a>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {techWorkStatus.usedParts && techWorkStatus.usedParts.length > 0 && (
+                                                        <div className="mt-2">
+                                                            <div className="font-medium">Used Parts</div>
+                                                            <ul className="list-disc ml-4">
+                                                                {techWorkStatus.usedParts.map((part, idx) => (
+                                                                    <li key={idx}>
+                                                                        {part.productName} x{part.count} (₹{part.price} each, Total: ₹{part.total})
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {techWorkStatus.workStartedAt && (
+                                                        <div className="mt-2 text-xs text-gray-500">
+                                                            Work Started At: {new Date(techWorkStatus.workStartedAt).toLocaleString()}
+                                                        </div>
+                                                    )}
+                                                    <div className="mt-1 text-xs text-gray-500">
+                                                        Work Duration: {techWorkStatus.workDuration ? `${Math.floor(techWorkStatus.workDuration / 60)} min` : "N/A"}
+                                                    </div>
+                                                </>
+                                                : "Not available"}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
