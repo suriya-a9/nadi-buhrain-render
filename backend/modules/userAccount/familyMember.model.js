@@ -8,7 +8,7 @@ const familyMemberSchema = new mongoose.Schema({
     fullName: String,
     relation: {
         type: String,
-        enum: ["wife", "daughter", "son"]
+        enum: ["spouse", "daughter", "son", "father", "mother"]
     },
     mobile: Number,
     email: String,
