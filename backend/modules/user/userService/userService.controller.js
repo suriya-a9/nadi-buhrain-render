@@ -1,18 +1,10 @@
 const mongoose = require('mongoose')
 const UserService = require('./userService.model');
 const formatDate = require('../../../utils/formatDate');
-const UserAccount = require("../../userAccount/userAccount.model");
 
 exports.createRequest = async (req, res, next) => {
     const { serviceId, issuesId, feedback, scheduleService, immediateAssistance, otherIssue } = req.body;
     try {
-        const userId = req.user.id;
-        const user = await UserAccount.findById(userId);
-        if (user.accountVerification !== "verified") {
-            return res.status(400).json({
-                message: 'Your account is not verified yet. Kindly wait till your account get verified'
-            })
-        }
         const fileNames = req.files ? req.files.map(file => file.filename) : [];
         if (!mongoose.Types.ObjectId.isValid(serviceId)) {
             return res.status(400).json({ message: "Invalid serviceId" });
@@ -25,7 +17,7 @@ exports.createRequest = async (req, res, next) => {
         }
 
         const requestCreate = await UserService.create({
-            userId: userId,
+            userId: req.user.id,
             serviceId,
             issuesId: issuesId ? issuesId : null,
             otherIssue: otherIssue ? otherIssue : null,
