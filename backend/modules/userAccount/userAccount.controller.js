@@ -82,7 +82,7 @@ exports.sendOtp = async (req, res, next) => {
                 message: "user id needed"
             })
         }
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
         await Otp.create({
             userId,
             otp,
