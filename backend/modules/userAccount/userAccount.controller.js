@@ -86,7 +86,7 @@ exports.sendOtp = async (req, res, next) => {
         await Otp.create({
             userId,
             otp,
-            expiresAt: Date.now() + 15 * 60 * 1000,
+            expiresAt: Date.now() + 1 * 60 * 1000,
         })
         await UserAccount.findByIdAndUpdate(userId, { step: 4, status: "pending_otp" });
 
