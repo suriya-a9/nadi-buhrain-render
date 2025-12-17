@@ -106,8 +106,17 @@ exports.verifyOtp = async (req, res, next) => {
         }
         const record = await Otp.findOne({ userId }).sort({ createdAt: -1 });
 
-        if (!record || record.otp !== otp || record.expiresAt < Date.now()) {
-            return res.status(400).json({ message: "Invalid or expired OTP" });
+        if (!record) {
+            return res.status(400).json({ message: "OTP not found" });
+        }
+
+        if (new Date(record.expiresAt).getTime() < Date.now()) {
+            await Otp.deleteMany({ userId });
+            return res.status(400).json({ message: "OTP expired" });
+        }
+
+        if (record.otp !== otp) {
+            return res.status(400).json({ message: "OTP mismatch" });
         }
         await Otp.deleteMany({ userId });
         await UserAccount.findByIdAndUpdate(userId, {
