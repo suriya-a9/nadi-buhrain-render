@@ -89,7 +89,7 @@ export default function Services() {
                         render: (value) =>
                             value ? (
                                 <img
-                                    src={`http://localhost:8080/uploads/${value}`}
+                                    src={`${import.meta.env.VITE_API_URL}/uploads/${value}`}
                                     className="h-12 rounded border"
                                 />
                             ) : (
@@ -102,7 +102,7 @@ export default function Services() {
                         render: (value) =>
                             value ? (
                                 <img
-                                    src={`http://localhost:8080/uploads/${value}`}
+                                    src={`${import.meta.env.VITE_API_URL}/uploads/${value}`}
                                     className="h-12 rounded border"
                                 />
                             ) : (

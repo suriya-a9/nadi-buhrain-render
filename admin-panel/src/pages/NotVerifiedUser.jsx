@@ -55,7 +55,7 @@ export default function NotVerifiedUser() {
         if (!selected) return null;
         return selected.user || selected;
     };
-    const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
+    const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
     const renderIdProofs = (files = []) => {
         if (!files || !files.length) return <div className="text-gray-700">No ID proofs</div>;
         return (
@@ -197,7 +197,7 @@ export default function NotVerifiedUser() {
                                                 <div className="text-xs text-gray-500 mb-2">Owner ID Proofs</div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {owner.idProofUrl.map((f, i) => {
-                                                        const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
+                                                        const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
                                                         const url = `${API_BASE}/uploads/${f}`;
                                                         const ext = f.split('.').pop().toLowerCase();
                                                         const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext);

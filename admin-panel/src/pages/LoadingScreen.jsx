@@ -91,7 +91,7 @@ export default function LoadingScreen() {
                 <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="bg-gray-100 p-4 flex justify-center">
                         <img
-                            src={`http://localhost:8080/uploads/${screens[0].image}`}
+                            src={`${import.meta.env.VITE_API_URL}/uploads/${screens[0].image}`}
                             alt="Loading Screen"
                             className="h-48 object-contain rounded border"
                         />

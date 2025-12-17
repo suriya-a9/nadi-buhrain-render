@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { IoIosNotifications } from "react-icons/io";
 import { io } from "socket.io-client";
+import { MdDone } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
 import api from "../services/api";
 
 export default function Header({ toggleSidebar }) {
@@ -9,6 +11,7 @@ export default function Header({ toggleSidebar }) {
     const [openMenu, setOpenMenu] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const socketRef = useRef(null);
     const loadNotifications = async () => {
         const res = await api.get("/notifications");
         setNotifications(res.data.data);
@@ -16,17 +19,31 @@ export default function Header({ toggleSidebar }) {
 
     useEffect(() => {
         loadNotifications();
-        const socket = io(import.meta.env.VITE_API_URL || "http://localhost:8080");
-        socket.on('notification', (data) => {
-            setNotifications((prev) => [data, ...prev]);
-        });
-        return () => socket.disconnect();
+        if (!socketRef.current) {
+            socketRef.current = io(import.meta.env.VITE_API_URL);
+            socketRef.current.on('notification', (data) => {
+                setNotifications((prev) => [data, ...prev]);
+            });
+        }
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+        };
     }, []);
 
     const markAsRead = async (id) => {
         await api.post(`/notifications/mark-read/${id}`);
         setNotifications((prev) =>
             prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+        );
+    };
+
+    const removeNotification = async (id) => {
+        await api.post(`/notifications/clear-notification/${id}`);
+        setNotifications((prev) =>
+            prev.filter((n) => n._id !== id)
         );
     };
 
@@ -83,12 +100,28 @@ export default function Header({ toggleSidebar }) {
                                 notifications.map((n, idx) => (
                                     <li
                                         key={n._id || idx}
-                                        className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer ${n.read ? "text-gray-400" : ""}`}
-                                        onClick={() => markAsRead(n._id)}
+                                        className={`flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 ${n.read ? "text-gray-400" : ""}`}
                                     >
-                                        {n.message}
-                                        <div className="text-xs text-gray-400">{new Date(n.time).toLocaleString()}</div>
-                                        {!n.read && <span className="ml-2 text-blue-500 text-xs">Mark as read</span>}
+                                        <div>
+                                            <div className="font-medium">{n.message}</div>
+                                            <div className="text-xs text-gray-400">{new Date(n.time).toLocaleString()}</div>
+                                        </div>
+                                        {!n.read && (
+                                            <button
+                                                onClick={() => markAsRead(n._id)}
+                                                className="ml-2 text-blue-500 hover:text-green-600"
+                                                title="Mark as read"
+                                            >
+                                                <MdDone size={20} title="mark as read" />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => removeNotification(n._id)}
+                                            className="ml-2 text-red-500 hover:text-red-700"
+                                            title="Remove notification"
+                                        >
+                                            <RxCross2 size={18} title="remove notification" />
+                                        </button>
                                     </li>
                                 ))
                             )}

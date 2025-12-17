@@ -12,6 +12,11 @@ router.post('/mark-read/:id', async (req, res) => {
     res.json({ success: true });
 });
 
+router.post('/clear-notification/:id', async (req, res) => {
+    await Notification.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+})
+
 router.post('/clear', async (req, res) => {
     await Notification.deleteMany({});
     res.json({ success: true });

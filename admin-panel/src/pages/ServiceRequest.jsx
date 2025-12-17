@@ -11,7 +11,7 @@ export default function ServiceRequest() {
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState("");
 
-    const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
+    const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
 
     const loadRequests = async () => {
         setLoading(true);

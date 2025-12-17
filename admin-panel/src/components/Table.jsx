@@ -8,52 +8,59 @@ function getValue(obj, key) {
 
 
 export default function Table({ columns = [], data = [], actions }) {
-    return (
-        <div className="bg-white rounded shadow overflow-hidden">
-            <table className="w-full">
-                <thead className="bg-gray-100 border-b">
-                    <tr>
-                        {columns.map((col) => (
-                            <th key={col.key} className="text-left p-3 font-medium">
-                                {col.title}
-                            </th>
-                        ))}
-                        {actions && <th className="p-3 font-medium">Actions</th>}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.length === 0 ? (
-                        <tr>
-                            <td
-                                colSpan={columns.length + (actions ? 1 : 0)}
-                                className="p-6 text-center text-gray-500"
-                            >
-                                No data found
-                            </td>
-                        </tr>
-                    ) : (
-                        data.map((row) => (
-                            <tr
-                                key={row._id}
-                                className="border-b hover:bg-gray-50 transition"
-                            >
-                                {columns.map((col) => (
-                                    <td key={col.key} className="p-3">
-                                        {col.render
-                                            ? col.render(getValue(row, col.key), row)
-                                            : getValue(row, col.key)}
-                                    </td>
-                                ))}
-                                {actions && (
-                                    <td className="p-3">
-                                        {actions(row)}
-                                    </td>
-                                )}
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
+  return (
+    <div className="bg-white rounded shadow overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[700px]">
+          <thead className="bg-gray-100 border-b">
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className="text-left p-3 font-medium whitespace-nowrap"
+                >
+                  {col.title}
+                </th>
+              ))}
+              {actions && (
+                <th className="p-3 font-medium whitespace-nowrap">Actions</th>
+              )}
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="p-6 text-center text-gray-500"
+                >
+                  No data found
+                </td>
+              </tr>
+            ) : (
+              data.map((row) => (
+                <tr
+                  key={row._id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.key}
+                      className="p-3 whitespace-nowrap"
+                    >
+                      {col.render
+                        ? col.render(getValue(row, col.key), row)
+                        : getValue(row, col.key)}
+                    </td>
+                  ))}
+                  {actions && <td className="p-3">{actions(row)}</td>}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

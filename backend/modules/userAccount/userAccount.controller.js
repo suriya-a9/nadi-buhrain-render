@@ -259,7 +259,7 @@ exports.completeSignUp = async (req, res, next) => {
         }
         const familyMembers = await FamilyMember.find({ userId });
         for (const member of familyMembers) {
-            const existing = await UserAccount.findOne({ "basicInfo.email": member.email });
+            const existing = await UserAccount.findOne({ "basicInfo.mobileNumber": member.mobile });
             if (existing) continue;
             const newFamilyUser = await UserAccount.create({
                 accountTypeId: user.accountTypeId,
