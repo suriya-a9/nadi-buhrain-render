@@ -259,8 +259,7 @@ exports.completeSignUp = async (req, res, next) => {
         }
         const familyMembers = await FamilyMember.find({ userId });
         for (const member of familyMembers) {
-            // const existing = await UserAccount.findOne({ "basicInfo.mobileNumber": member.mobile });
-            const existing = await UserAccount.findOne({ "basicInfo.email": member.email });
+            const existing = await UserAccount.findOne({ "basicInfo.mobileNumber": member.mobile });
             if (existing) continue;
             const newFamilyUser = await UserAccount.create({
                 accountTypeId: user.accountTypeId,
@@ -296,9 +295,15 @@ exports.completeSignUp = async (req, res, next) => {
         });
         const io = req.app.get('io');
         io.emit('notification', notification);
+        const token = jwt.sign(
+            { id: user._id },
+            config.jwt,
+            { expiresIn: '30d' }
+        );
         res.status(200).json({
             message: 'user registered successfully',
-            data: user
+            data: user,
+            token: token
         })
     } catch (err) {
         next(err);
