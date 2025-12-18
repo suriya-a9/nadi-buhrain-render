@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
+import Pagination from "../components/Pagination";
 
 export default function NotVerifiedUser() {
     const [users, setUsers] = useState([]);
@@ -9,7 +10,16 @@ export default function NotVerifiedUser() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState("");
-
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [users]);
+    const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+    const paginatedUsers = users.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
     const loadUsers = async () => {
         setLoading(true);
         try {
@@ -95,7 +105,7 @@ export default function NotVerifiedUser() {
                     { title: "Status", key: "accountVerification" },
                     { title: "Rejection Reason", key: "reason" },
                 ]}
-                data={users}
+                data={paginatedUsers}
                 actions={(row) => (
                     <div className="flex gap-2">
                         <button
@@ -123,7 +133,13 @@ export default function NotVerifiedUser() {
                     </div>
                 )}
             />
-
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
+            )}
             {loading && <div className="text-sm text-gray-500 mt-2">Loading...</div>}
 
             {detailsOpen && selectedUser && (() => {

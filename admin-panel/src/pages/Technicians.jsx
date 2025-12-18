@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
+import Pagination from "../components/Pagination";
 
 export default function Technicians() {
     const [technicians, setTechnicians] = useState([]);
@@ -17,6 +18,11 @@ export default function Technicians() {
         role: "",
         password: "",
     });
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [technicians]);
     const loadSkills = async () => {
         const res = await api.get("/technical");
         setSkills(res.data.data);
@@ -95,14 +101,19 @@ export default function Technicians() {
         );
         loadTechnicians();
     };
+    const totalPages = Math.ceil(technicians.length / ITEMS_PER_PAGE);
 
+    const paginatedTechnicians = technicians.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Technicians List</h2>
                 <button
                     onClick={openCreate}
-                    className="bg-brandGreen text-white px-4 py-2 rounded"
+                    className="bg-bgGreen text-white px-4 py-2 rounded"
                 >
                     Add Technician
                 </button>
@@ -121,7 +132,7 @@ export default function Technicians() {
                         render: (role) => role?.skill || "-",
                     },
                 ]}
-                data={technicians}
+                data={paginatedTechnicians}
                 actions={(row) => (
                     <div className="flex gap-2">
                         <button
@@ -140,7 +151,13 @@ export default function Technicians() {
                     </div>
                 )}
             />
-
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
+            )}
             <Offcanvas
                 open={openCanvas}
                 onClose={() => setOpenCanvas(false)}
@@ -237,7 +254,7 @@ export default function Technicians() {
                         </div>
                     )}
 
-                    <button className="w-full bg-brandGreen text-white py-2 rounded">
+                    <button className="w-full bg-bgGreen text-white py-2 rounded">
                         {editData ? "Update Technician" : "Create Technician"}
                     </button>
                 </form>

@@ -89,7 +89,7 @@ export default function Intro() {
                 <h2 className="text-2xl font-semibold">Intro Content</h2>
 
                 {/* <button
-                    className="bg-brandGreen text-white px-4 py-2 rounded"
+                    className="bg-bgGreen text-white px-4 py-2 rounded"
                     onClick={() => {
                         setForm({ id: "", content: [""] });
                         setOpen(true);
@@ -170,7 +170,7 @@ export default function Intro() {
 
                     <button
                         type="submit"
-                        className="bg-brandGreen w-full text-white py-2 rounded"
+                        className="bg-bgGreen w-full text-white py-2 rounded"
                     >
                         {form.id ? "Update Intro" : "Create Intro"}
                     </button>

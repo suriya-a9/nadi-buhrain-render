@@ -6,7 +6,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        brandGreen: "#0D5F48",
+        brandGreen: "#B4EADB",
+        bgGreen: "#0D5F48",
         textGreen: "#0D5F48",
       },
     },

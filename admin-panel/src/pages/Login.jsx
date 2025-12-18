@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login() {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -17,9 +18,15 @@ export default function Login() {
             const res = await api.post("/admin/login", form);
             login(res.data.token);
             navigate("/");
-        } catch {
-            alert("Invalid login");
+            toast.success(res.data.message, {
+                duration: 2000
+            });
+        } catch (err) {
+            toast.error(err.response?.data?.message, {
+                duration: 2000
+            });
         }
+
     };
 
     return (
@@ -53,7 +60,7 @@ export default function Login() {
 
                         <button
                             type="submit"
-                            className="w-full py-3 bg-brandGreen text-white rounded-lg hover:bg-brandGreen"
+                            className="w-full py-3 bg-bgGreen text-white rounded-lg hover:bg-bgGreen"
                         >
                             Sign In
                         </button>
@@ -61,14 +68,14 @@ export default function Login() {
 
                     <p className="text-center mt-5">
                         Don’t have an account?
-                        <Link className="text-brandGreen ml-1" to="/register">
+                        <Link className="text-bgGreen ml-1" to="/register">
                             Sign Up
                         </Link>
                     </p>
                 </div>
             </div>
 
-            <div className="hidden lg:flex lg:w-1/2 bg-brandGreen items-center justify-center">
+            <div className="hidden lg:flex lg:w-1/2 bg-bgGreen items-center justify-center">
                 <img
                     src="/assets/logo.webp"
                     alt="logo"

@@ -123,7 +123,7 @@ export default function Points() {
                             ))}
                         </select>
                     </div>
-                    <button className="w-full bg-brandGreen text-white py-2 rounded">
+                    <button className="w-full bg-bgGreen text-white py-2 rounded">
                         {editData ? "Update Points" : "Create Points"}
                     </button>
                 </form>

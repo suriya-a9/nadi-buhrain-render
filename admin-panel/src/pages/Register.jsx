@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Register() {
     const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -15,8 +16,13 @@ export default function Register() {
             await api.post("/admin/register", form);
             alert("Account created!");
             navigate("/login");
-        } catch {
-            alert("Registration failed");
+            toast.success(res.data.message, {
+                duration: 2000
+            });
+        } catch (err) {
+            toast.error(err.response?.data?.message, {
+                duration: 2000
+            });
         }
     };
 
@@ -61,7 +67,7 @@ export default function Register() {
 
                         <button
                             type="submit"
-                            className="w-full py-3 bg-brandGreen text-white rounded-lg hover:bg-brandGreen"
+                            className="w-full py-3 bg-bgGreen text-white rounded-lg hover:bg-bgGreen"
                         >
                             Sign Up
                         </button>
@@ -69,14 +75,14 @@ export default function Register() {
 
                     <p className="text-center mt-5">
                         Already have an account?
-                        <Link className="text-brandGreen ml-1" to="/login">
+                        <Link className="text-bgGreen ml-1" to="/login">
                             Sign In
                         </Link>
                     </p>
                 </div>
             </div>
 
-            <div className="hidden lg:flex lg:w-1/2 bg-brandGreen items-center justify-center">
+            <div className="hidden lg:flex lg:w-1/2 bg-bgGreen items-center justify-center">
                 <img
                     src="/assets/logo.webp"
                     alt="logo"

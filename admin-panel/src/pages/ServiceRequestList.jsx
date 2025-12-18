@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Table from "../components/Table";
 import api from "../services/api";
+import Pagination from "../components/Pagination";
 const getLastUpdatedStatus = (statusTimestamps = {}) => {
     const entries = Object.entries(statusTimestamps)
         .filter(([, value]) => value)
@@ -23,9 +24,19 @@ export default function ServiceRequestList() {
     const acceptedRequests = requests.filter(r => r.technicianAccepted === true);
     const rejectedRequests = requests.filter(r => r.technicianAccepted === false && r.technicianId);
     const notAssignedRequests = requests.filter(r => !r.technicianId);
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
     let tabData = acceptedRequests;
     if (activeTab === 1) tabData = rejectedRequests;
     if (activeTab === 2) tabData = notAssignedRequests;
+    const totalPages = Math.ceil(tabData.length / ITEMS_PER_PAGE);
+    const paginatedData = tabData.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
     const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
     const loadRequests = async () => {
         setLoading(true);
@@ -188,7 +199,7 @@ export default function ServiceRequestList() {
                         ),
                     },
                 ]}
-                data={tabData}
+                data={paginatedData}
                 actions={(row) => (
                     <button
                         className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
@@ -198,7 +209,12 @@ export default function ServiceRequestList() {
                     </button>
                 )}
             />
-            {!loading && tabData.length === 0 && (
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
+            {!loading && paginatedData.length === 0 && (
                 <div className="text-center text-gray-500 mt-4">No requests in this category.</div>
             )}
             {detailsOpen && selected && (

@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }) {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 overflow-x-hidden">
+    <div className="flex min-h-screen bg-white overflow-x-hidden">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
 
       <div className="flex-1 lg:ml-64 min-w-0">

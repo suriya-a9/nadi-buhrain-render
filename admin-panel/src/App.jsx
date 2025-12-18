@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -16,132 +17,137 @@ import LoadingScreen from "./pages/LoadingScreen";
 import ServiceRequest from "./pages/ServiceRequest";
 import ServiceRequestList from "./pages/ServiceRequestList";
 import Points from "./pages/Points";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
+    <>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
 
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <Dashboard />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/services"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <Services />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <User />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/technicians"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <Technicians />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/not-verified"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <NotVerifiedUser />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/splash-screen"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <Intro />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/about-screen"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <LoadingScreen />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/new-requests"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <ServiceRequest />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/service-requests"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <ServiceRequestList />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/points"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <Points />
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/services"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Services />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <User />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/technicians"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Technicians />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/not-verified"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <NotVerifiedUser />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/splash-screen"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Intro />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/about-screen"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <LoadingScreen />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-requests"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <ServiceRequest />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/service-requests"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <ServiceRequestList />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/points"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Points />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+      <Toaster position="top-right" reverseOrder={false} duration={2000} />
+    </>
   );
 }

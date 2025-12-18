@@ -8,6 +8,11 @@ exports.createRequest = async (req, res, next) => {
     const { serviceId, issuesId, feedback, scheduleService, immediateAssistance, otherIssue } = req.body;
     try {
         const userId = req.user.id;
+        if(!userId){
+            return res.status(401).json({
+                message: "user id needed"
+            })
+        }
         const user = await UserAccount.findById(userId);
         if (user.accountVerification !== "verified") {
             return res.status(400).json({

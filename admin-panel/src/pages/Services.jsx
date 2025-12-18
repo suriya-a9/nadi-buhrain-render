@@ -3,6 +3,7 @@ import axios from "axios";
 import api from "../services/api";
 import Offcanvas from "../components/Offcanvas";
 import Table from "../components/Table";
+import Pagination from "../components/Pagination";
 
 export default function Services() {
     const [services, setServices] = useState([]);
@@ -14,7 +15,11 @@ export default function Services() {
         serviceImage: null,
         serviceLogo: null,
     });
-
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [services]);
     const loadServices = async () => {
         const res = await api.get("/service");
         setServices(res.data.data);
@@ -63,6 +68,12 @@ export default function Services() {
         await api.post("/service/delete", { id });
         loadServices();
     };
+    const totalPages = Math.ceil(services.length / ITEMS_PER_PAGE);
+
+    const paginatedServices = services.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div>
@@ -70,7 +81,7 @@ export default function Services() {
                 <h2 className="text-2xl font-semibold">Services</h2>
 
                 <button
-                    className="bg-brandGreen text-white px-4 py-2 rounded"
+                    className="bg-bgGreen text-white px-4 py-2 rounded"
                     onClick={() => {
                         setForm({ id: "", name: "", serviceImage: null, serviceLogo: null });
                         setOpenCanvas(true);
@@ -110,7 +121,7 @@ export default function Services() {
                             ),
                     },
                 ]}
-                data={services}
+                data={paginatedServices}
                 actions={(row) => (
                     <div>
                         <button
@@ -128,6 +139,11 @@ export default function Services() {
                         </button>
                     </div>
                 )}
+            />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
             />
 
             <Offcanvas
@@ -172,7 +188,7 @@ export default function Services() {
 
                     <button
                         type="submit"
-                        className="bg-brandGreen w-full text-white py-2 rounded"
+                        className="bg-bgGreen w-full text-white py-2 rounded"
                     >
                         {form.id ? "Update Service" : "Create Service"}
                     </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Table from "../components/Table";
 import api from "../services/api";
+import Pagination from "../components/Pagination";
 
 export default function ServiceRequest() {
     const [requests, setRequests] = useState([]);
@@ -10,7 +11,11 @@ export default function ServiceRequest() {
     const [statusUpdating, setStatusUpdating] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState("");
-
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [requests]);
     const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
 
     const loadRequests = async () => {
@@ -90,6 +95,13 @@ export default function ServiceRequest() {
         "paymentInProgress",
         "completed"
     ];
+    const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE);
+
+    const paginatedRequests = requests.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     return (
         <div>
             <div className="flex items-center justify-between mb-4">
@@ -110,7 +122,7 @@ export default function ServiceRequest() {
                         render: (value) => (value ? "Yes" : "No"),
                     },
                 ]}
-                data={requests}
+                data={paginatedRequests}
                 actions={(row) => (
                     <button
                         className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
@@ -119,6 +131,11 @@ export default function ServiceRequest() {
                         View
                     </button>
                 )}
+            />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
             />
             {loading && <div className="text-sm text-gray-500 mt-2">Loading...</div>}
 
@@ -198,7 +215,7 @@ export default function ServiceRequest() {
                                         disabled={statusUpdating || selected.serviceStatus === "accepted"}
                                         className={`px-3 py-1 rounded ${selected.serviceStatus === "accepted"
                                             ? "bg-gray-400 text-white"
-                                            : "bg-brandGreen text-white"
+                                            : "bg-bgGreen text-white"
                                             }`}
                                         onClick={() => handleStatusUpdate(selected._id, "accepted")}
                                     >

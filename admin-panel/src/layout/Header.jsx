@@ -16,6 +16,8 @@ export default function Header({ toggleSidebar }) {
         const res = await api.get("/notifications");
         setNotifications(res.data.data);
     };
+    const notificationRef = useRef(null);
+    const profileRef = useRef(null);
 
     useEffect(() => {
         loadNotifications();
@@ -51,6 +53,28 @@ export default function Header({ toggleSidebar }) {
         await api.post("/notifications/clear");
         setNotifications([]);
     };
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (
+                notificationRef.current &&
+                !notificationRef.current.contains(e.target)
+            ) {
+                setShowDropdown(false);
+            }
+
+            if (
+                profileRef.current &&
+                !profileRef.current.contains(e.target)
+            ) {
+                setOpenMenu(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     return (
         <header className="bg-white shadow h-16 flex items-center px-4 justify-between">
             <button
@@ -70,7 +94,7 @@ export default function Header({ toggleSidebar }) {
 
             <h1 className="text-xl font-semibold"> </h1>
 
-            <div className="relative flex items-center">
+            <div className="relative flex items-center" ref={notificationRef}>
                 <button
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="relative p-2 rounded hover:bg-gray-100"
@@ -128,30 +152,32 @@ export default function Header({ toggleSidebar }) {
                         </ul>
                     </div>
                 )}
-                <button
-                    onClick={() => setOpenMenu(!openMenu)}
-                    className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
-                >
-                    <img
-                        src="/assets/admin-logo.webp"
-                        alt="avatar"
-                        className="w-9 h-9 rounded-full"
-                    />
-                </button>
+                <div className="relative" ref={profileRef}>
+                    <button
+                        onClick={() => setOpenMenu(!openMenu)}
+                        className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
+                    >
+                        <img
+                            src="/assets/admin-logo.webp"
+                            alt="avatar"
+                            className="w-9 h-9 rounded-full"
+                        />
+                    </button>
 
-                {openMenu && (
-                    <div className="absolute right-0 top-[35px] mt-2 w-40 bg-white rounded shadow-md py-2">
-                        <button
-                            onClick={() => {
-                                logout();
-                                window.location.href = "/login";
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                )}
+                    {openMenu && (
+                        <div className="absolute right-0 top-[35px] mt-2 w-40 bg-white rounded shadow-md py-2">
+                            <button
+                                onClick={() => {
+                                    logout();
+                                    window.location.href = "/login";
+                                }}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </header>
     );

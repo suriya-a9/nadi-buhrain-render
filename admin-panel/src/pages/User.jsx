@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
+import Pagination from "../components/Pagination";
 
 export default function User() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
-
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
     const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [users]);
+    const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
 
+    const paginatedUsers = users.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
     const loadUsers = async () => {
         setLoading(true);
         try {
@@ -77,7 +87,7 @@ export default function User() {
                     { title: "Account Type", key: "accountTypeId.name" },
                     { title: "Status", key: "accountVerification" }
                 ]}
-                data={users}
+                data={paginatedUsers}
                 actions={(row) => (
                     <div className="flex gap-2">
                         <button
@@ -89,7 +99,13 @@ export default function User() {
                     </div>
                 )}
             />
-
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
+            )}
             {loading && <div className="text-sm text-gray-500 mt-2">Loading...</div>}
 
             {detailsOpen && selectedUser && (() => {
