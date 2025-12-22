@@ -7,6 +7,7 @@ const config = require('../../config/default');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Notification = require('../adminPanel/notification/notification.model');
+const UserLog = require('../userLogs/userLogs.model');
 
 exports.startSignUp = async (req, res, next) => {
     const { accountTypeId } = req.body;
@@ -31,15 +32,15 @@ exports.startSignUp = async (req, res, next) => {
 exports.saveBasicInfo = async (req, res, next) => {
     const { userId, fullName, mobileNumber, email, gender, password } = req.body;
     try {
-        const existingUser = await UserAccount.findOne({
-            "basicInfo.mobileNumber": mobileNumber,
-            _id: { $ne: userId }
-        });
-        if (existingUser) {
-            return res.status(400).json({
-                message: "Account already registered"
-            });
-        }
+        // const existingUser = await UserAccount.findOne({
+        //     "basicInfo.mobileNumber": mobileNumber,
+        //     _id: { $ne: userId }
+        // });
+        // if (existingUser) {
+        //     return res.status(400).json({
+        //         message: "Account already registered"
+        //     });
+        // }
         const user = await UserAccount.findById(userId);
         const hashedPassword = await bcrypt.hash(password, 10)
         const addBasicInfo = await UserAccount.findByIdAndUpdate(user, {
@@ -173,11 +174,11 @@ exports.addFamilyMember = async (req, res, next) => {
         if (!userId) {
             return res.status(400).json({ message: "user id needed" });
         }
-        const existingUser = await UserAccount.findOne({ "basicInfo.mobileNumber": mobile });
-        const existingFamily = await FamilyMember.findOne({ mobile });
-        if (existingUser || existingFamily) {
-            return res.status(400).json({ message: "Mobile number already registered" });
-        }
+        // const existingUser = await UserAccount.findOne({ "basicInfo.mobileNumber": mobile });
+        // const existingFamily = await FamilyMember.findOne({ mobile });
+        // if (existingUser || existingFamily) {
+        //     return res.status(400).json({ message: "Mobile number already registered" });
+        // }
         const addressDoc = await Address.create({
             ...address
         });
@@ -293,6 +294,13 @@ exports.completeSignUp = async (req, res, next) => {
             time: new Date(),
             read: false
         });
+        await UserLog.create({
+            userId: user._id,
+            log: "Account created",
+            status: "New Account",
+            logo: "/assets/user-creation.webp",
+            time: new Date()
+        })
         const io = req.app.get('io');
         io.emit('notification', notification);
         const token = jwt.sign(
@@ -303,7 +311,8 @@ exports.completeSignUp = async (req, res, next) => {
         res.status(200).json({
             message: 'user registered successfully',
             data: user,
-            token: token
+            token: token,
+            accountType: account ? account.type : null
         })
     } catch (err) {
         next(err);
@@ -359,13 +368,23 @@ exports.signIn = async (req, res, next) => {
                 message: 'Password mismatch'
             });
         }
+        const accountType = await Account.findById(user.accountTypeId);
+
         const token = jwt.sign(
             { id: user._id },
             config.jwt,
             { expiresIn: '30d' }
         );
+        await UserLog.create({
+            userId: user._id,
+            log: 'Signed In',
+            status: "Signed In",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        })
         res.status(200).json({
-            token: token
+            token: token,
+            accountType: accountType ? accountType.type : null
         });
     } catch (err) {
         next(err);
@@ -374,33 +393,34 @@ exports.signIn = async (req, res, next) => {
 
 exports.updateBasicInfoAndAddress = async (req, res, next) => {
     const { userId, basicInfo, address } = req.body;
-
     try {
+        let updatedFields = [];
+
         if (basicInfo) {
             const updateBasic = {};
-
             for (const key in basicInfo) {
                 if (key === "password") {
                     updateBasic["basicInfo.password"] =
                         await bcrypt.hash(basicInfo.password, 10);
+                    updatedFields.push("password");
                 } else {
                     updateBasic[`basicInfo.${key}`] = basicInfo[key];
+                    updatedFields.push(key);
                 }
             }
-
             await UserAccount.findByIdAndUpdate(
                 userId,
                 { $set: updateBasic },
                 { new: true }
             );
         }
+
         if (address) {
             const updateAddress = {};
-
             for (const key in address) {
                 updateAddress[key] = address[key];
+                updatedFields.push(`address.${key}`);
             }
-
             await Address.findOneAndUpdate(
                 { userId },
                 { $set: updateAddress },
@@ -408,10 +428,26 @@ exports.updateBasicInfoAndAddress = async (req, res, next) => {
             );
         }
 
+        if (updatedFields.length > 0) {
+            const logMessage = `Updated fields: ${updatedFields.join(", ")}`;
+            await UserLog.create({
+                userId,
+                log: logMessage,
+                status: "Signed In",
+                logo: "/assets/update-profile.webp",
+                time: new Date()
+            });
+        }
+        await UserLog.create({
+            userId: user._id,
+            log: 'Updated profile details',
+            status: "Updated",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        })
         res.status(200).json({
             message: "Basic info and address updated successfully"
         });
-
     } catch (err) {
         next(err);
     }

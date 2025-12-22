@@ -1,9 +1,17 @@
 const Account = require("./account.model");
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addAccountType = async (req, res, next) => {
   const { name, type } = req.body;
   try {
     const accountTypeData = await Account.create({ name, type });
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Account type - ${accountTypeData.name} added`,
+      status: "Created",
+      logo: "/assets/account-type.webp",
+      time: new Date()
+    });
     res.status(201).json({
       message: "Account type created",
       data: accountTypeData,
@@ -21,6 +29,13 @@ exports.updateAccountType = async (req, res, next) => {
       updateFields,
       { new: true }
     )
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Account type - ${updateAccount.name} Updated`,
+      status: "Updated",
+      logo: "/assets/account-type.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: 'Updated successfully',
       data: updateAccount
@@ -44,7 +59,14 @@ exports.listAccountType = async (req, res, next) => {
 exports.deleteAccountType = async (req, res, next) => {
   const { id } = req.body;
   try {
-    await Account.findByIdAndDelete(id);
+    const accountTypeDelete = await Account.findByIdAndDelete(id);
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Account type - ${accountTypeDelete.name} Deleted`,
+      status: "Deleted",
+      logo: "/assets/account-type.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: 'Deleted successfully'
     })

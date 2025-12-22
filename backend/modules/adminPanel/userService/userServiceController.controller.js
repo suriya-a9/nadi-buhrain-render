@@ -1,7 +1,7 @@
 const UserService = require('../../user/userService/userService.model');
 const TechnicianUserService = require('./technicianUserService.model');
 const formatDate = require('../../../utils/formatDate');
-const logger = require('../../../logger');
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.newUserServiceRequest = async (req, res, next) => {
     try {
@@ -63,6 +63,13 @@ exports.updateServiceStatus = async (req, res, next) => {
             { $set: update },
             { new: true }
         );
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Service request ${updated._id} updated to status: ${serviceStatus}`,
+            status: "Updated",
+            logo: "/assets/service request.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Status updated",
             data: updated
@@ -79,18 +86,22 @@ exports.assignTechnician = async (req, res, next) => {
         if (!serviceId || !technicianId) {
             return res.status(400).json({ message: "serviceId and technicianId are required" });
         }
-
         await UserService.findByIdAndUpdate(
             serviceId,
             { $set: { technicianId } }
         );
-
         const assignment = await TechnicianUserService.create({
             technicianId,
             userServiceId: serviceId,
             status: 'pending'
         });
-
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Requested technician for server id ${serviceId}`,
+            status: "Requested",
+            logo: "/assets/service request.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Technician assignment created and technicianId added to service",
             data: assignment
@@ -123,7 +134,13 @@ exports.technicianRespond = async (req, res, next) => {
                     }
                 }
             );
-
+            await UserLog.create({
+                userId: req.user.id,
+                log: 'Accpeted a request',
+                status: "Accpeted",
+                logo: "/assets/service request.webp",
+                time: new Date()
+            });
             return res.status(200).json({ message: "Service accepted and updated" });
         } else if (action === 'reject') {
             if (!reason) {
@@ -137,7 +154,13 @@ exports.technicianRespond = async (req, res, next) => {
                 assignment.userServiceId,
                 { $set: { technicianId: null } }
             );
-
+            await UserLog.create({
+                userId: req.user.id,
+                log: 'Rejected a request',
+                status: "Rejected",
+                logo: "/assets/service request.webp",
+                time: new Date()
+            });
             return res.status(200).json({ message: "Service rejected", data: assignment });
         } else {
             return res.status(400).json({ message: "Invalid action" });

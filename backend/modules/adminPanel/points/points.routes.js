@@ -4,9 +4,9 @@ const auth = require('../../../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/add', addPoints);
+router.post('/add', auth, addPoints);
 router.get('/', listPoints);
-router.post('/update', updatePoints);
+router.post('/update', auth, updatePoints);
 router.post('/transfer-points', auth, transferPointsWithFamily);
 router.post('/requestToFamily', auth, requestPointsToFamily);
 router.post('/requestList', auth, requestList);

@@ -1,11 +1,19 @@
 const TechnicalSkillSet = require('./technicianSkillSet.model');
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addSkillSet = async (req, res, next) => {
     const { skill } = req.body;
     try {
         const skillsAdd = await TechnicalSkillSet.create({
             skill
-        })
+        });
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Created skillset - ${skillsAdd.skill}`,
+            status: "Created",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(201).json({
             message: 'created successfully',
             data: skillsAdd
@@ -29,7 +37,14 @@ exports.listSkillSet = async (req, res, next) => {
 exports.updateSkillSet = async (req, res, next) => {
     const { id, ...updateFields } = req.body;
     try {
-        await TechnicalSkillSet.findByIdAndUpdate(id, updateFields, { new: true });
+        const skillSetUpdate = await TechnicalSkillSet.findByIdAndUpdate(id, updateFields, { new: true });
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Updated skillset - ${skillSetUpdate.skill}`,
+            status: "Updated",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "updated successfully"
         })
@@ -41,7 +56,14 @@ exports.updateSkillSet = async (req, res, next) => {
 exports.deleteSkillSet = async (req, res, next) => {
     const { id } = req.body;
     try {
-        await TechnicalSkillSet.findByIdAndDelete(id);
+        const skillSetDelete = await TechnicalSkillSet.findByIdAndDelete(id);
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Deleted skillset - ${skillSetDelete.skill}`,
+            status: "Deleted",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "deleted successfully"
         })

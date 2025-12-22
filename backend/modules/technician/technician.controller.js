@@ -6,6 +6,7 @@ const Address = require('../address/address.model');
 const TechnicianUserService = require('../adminPanel/userService/technicianUserService.model');
 const SpareParts = require("../adminPanel/spareParts/spareParts.model");
 const UserAccount = require('../userAccount/userAccount.model');
+const UserLog = require("../userLogs/userLogs.model");
 
 exports.assignedServices = async (req, res, next) => {
     try {
@@ -164,7 +165,13 @@ exports.startWork = async (req, res, next) => {
         if (!techUserService) {
             return res.status(404).json({ message: "TechnicianUserService not found" });
         }
-
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Work ${userServiceId} started`,
+            status: "Started",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Work started, statuses updated",
             userService,
@@ -202,6 +209,13 @@ exports.onHoldService = async (req, res, next) => {
             { status: "oh-hold" },
             { new: true }
         );
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Work ${userServiceId} on hold`,
+            status: "On hold",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "service on hold"
         })
@@ -248,7 +262,13 @@ exports.updateServiceStatus = async (req, res, next) => {
         //     userServiceId,
         //     { serviceStatus: "completed", "statusTimestamps.completed": new Date() }
         // );
-
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Updated status for work ${userServiceId}`,
+            status: "Updated",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Service completed, notes and media saved",
             techUserService: updatedTechUserService
@@ -329,7 +349,13 @@ exports.paymentRaise = async (req, res, next) => {
             type: "payment_raised",
             time: new Date()
         });
-
+        await UserLog.create({
+            userId: req.user.id,
+            log: `${userServiceId} - work completed`,
+            status: "Updated",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Payment raised, notifications sent",
             totalSparePartsCost,

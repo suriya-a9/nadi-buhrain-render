@@ -1,15 +1,21 @@
 const Loading = require("./loading.model");
 const fs = require("fs");
 const path = require("path");
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.uploadLoadingScreen = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-
     const saved = await Loading.create({ image: req.file.filename });
-
+    await UserLog.create({
+      userId: req.user.id,
+      log: "Loading content added",
+      status: "Created",
+      logo: "/assets/loading.webp",
+      time: new Date()
+    });
     return res.json({
       message: "File uploaded successfully",
       file: req.file.filename,
@@ -68,7 +74,13 @@ exports.updateLoadingScreen = async (req, res, next) => {
 
     loadingItem.image = newImage;
     await loadingItem.save();
-
+    await UserLog.create({
+      userId: req.user.id,
+      log: "Loading content Updated",
+      status: "Updated",
+      logo: "/assets/loading.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: "Loading screen updated successfully",
       data: loadingItem,
@@ -83,6 +95,13 @@ exports.deleteLoadingScreen = async (req, res, next) => {
   const { id } = req.body;
   try {
     await Loading.findByIdAndDelete(id);
+    await UserLog.create({
+      userId: req.user.id,
+      log: "Loading content Deleted",
+      status: "Deleted",
+      logo: "/assets/loading.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: "Deleted successfully"
     })

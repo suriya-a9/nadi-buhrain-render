@@ -1,4 +1,5 @@
 const Issue = require('./issue.model');
+const UserLog = require("../userLogs/userLogs.model");
 
 exports.addIssue = async (req, res, next) => {
     const { serviceId, issue } = req.body;
@@ -7,6 +8,13 @@ exports.addIssue = async (req, res, next) => {
             serviceId,
             issue
         })
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Created ${addIssue.issue} issue to list`,
+            status: "Created",
+            logo: "/assets/verification.webp",
+            time: new Date()
+        });
         res.status(201).json({
             message: 'Issue created',
             data: addIssue
@@ -30,11 +38,18 @@ exports.listIssue = async (req, res, next) => {
 exports.updateIssue = async (req, res, next) => {
     const { id, ...updateFields } = req.body;
     try {
-        await Issue.findByIdAndUpdate(
+        const issueUpdate = await Issue.findByIdAndUpdate(
             id,
             updateFields,
             { new: true }
         )
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Updated ${issueUpdate.issue} issue to list`,
+            status: "Updated",
+            logo: "/assets/verification.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "updated successfully"
         })
@@ -46,7 +61,14 @@ exports.updateIssue = async (req, res, next) => {
 exports.deleteIssue = async (req, res, next) => {
     const { id } = req.body;
     try {
-        await Issue.findByIdAndDelete(id);
+        const issueDelete = await Issue.findByIdAndDelete(id);
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Deleted ${issueDelete.issue} issue from list`,
+            status: "Deleted",
+            logo: "/assets/verification.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: 'deleted successfully'
         })

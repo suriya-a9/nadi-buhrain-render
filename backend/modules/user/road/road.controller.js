@@ -1,10 +1,18 @@
 const Road = require("./road.model");
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addRoad = async (req, res, next) => {
   const { name } = req.body;
   try {
     const roadData = await Road.create({
       name,
+    });
+    await UserLog.create({
+      userId: req.user.id,
+      log: `${roadData.name} added`,
+      status: "Created",
+      logo: "/assets/road.webp",
+      time: new Date()
     });
     res.status(201).json({
       message: "Created successfully",
@@ -35,6 +43,13 @@ exports.updateRoad = async (req, res, next) => {
       updateFields,
       { new: true }
     )
+    await UserLog.create({
+      userId: req.user.id,
+      log: `${updateRoad.name} updated`,
+      status: "Updated",
+      logo: "/assets/road.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: 'updated successfully',
       data: updateRoad
@@ -47,7 +62,14 @@ exports.updateRoad = async (req, res, next) => {
 exports.deleteRoad = async (req, res, next) => {
   const { id } = req.body;
   try {
-    await Road.findByIdAndDelete(id);
+    const roadData = await Road.findByIdAndDelete(id);
+    await UserLog.create({
+      userId: req.user.id,
+      log: `${roadData.name} deleted`,
+      status: "Deleted",
+      logo: "/assets/road.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: 'Deleted successfully'
     })

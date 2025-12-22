@@ -18,6 +18,10 @@ import ServiceRequest from "./pages/ServiceRequest";
 import ServiceRequestList from "./pages/ServiceRequestList";
 import Points from "./pages/Points";
 import NotFound from "./pages/NotFound";
+import Logs from "./pages/Logs";
+import Inventory from "./pages/Inventory";
+import MaterialRequests from "./pages/MaterialRequests";
+import SpareParts from "./pages/SpareParts";
 
 export default function App() {
   return (
@@ -139,6 +143,46 @@ export default function App() {
                 <PrivateRoute>
                   <DashboardLayout>
                     <Points />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user-logs"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Logs />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Inventory />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/material-requests"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <MaterialRequests />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/spare-parts"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <SpareParts />
                   </DashboardLayout>
                 </PrivateRoute>
               }

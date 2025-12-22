@@ -2,6 +2,7 @@ const Technician = require('./technician.model');
 const jwt = require('jsonwebtoken');
 const config = require('../../../config/default');
 const bcrypt = require('bcrypt');
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.registerTechnician = async (req, res, next) => {
     const { firstName, lastName, email, mobile, gender, password, role } = req.body;
@@ -26,6 +27,13 @@ exports.registerTechnician = async (req, res, next) => {
             image,
             password: hashedPassword
         })
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Created account for techician ${firstName} ${lastName}`,
+            status: "Created",
+            logo: "/assets/technician.webp",
+            time: new Date()
+        });
         res.status(201).json({
             message: 'registered successfully',
             data: registerData
@@ -54,7 +62,14 @@ exports.loginTechnician = async (req, res, next) => {
             { id: emailData._id, role: emailData.role },
             config.jwt,
             { expiresIn: '30d' }
-        )
+        );
+        await UserLog.create({
+            userId: emailData._id,
+            log: 'Signed In',
+            status: "Logged",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Logged in successfully",
             token: token
@@ -70,11 +85,18 @@ exports.updateTechnician = async (req, res, next) => {
         if (req.files?.image) {
             updateFields.image = req.files.image[0].filename;
         }
-        await Technician.findByIdAndUpdate(
+        const technicianUpdate = await Technician.findByIdAndUpdate(
             id,
             updateFields,
             { new: true }
         );
+        await UserLog.create({
+            userId: req.user.id,
+            log: 'Updated profile',
+            status: "Updated",
+            logo: "/assets/update-profile.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Profile updated successfully"
         });
@@ -86,7 +108,14 @@ exports.updateTechnician = async (req, res, next) => {
 exports.deleteTechnician = async (req, res, next) => {
     const { id } = req.body;
     try {
-        await Technician.findByIdAndDelete(id);
+        const technicianDelete = await Technician.findByIdAndDelete(id);
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Deleted Technician ${technicianDelete.firstName} ${technicianDelete.lastName}`,
+            status: "Deleted",
+            logo: "/assets/remove-user.webp",
+            time: new Date()
+        });
         res.status(200).json({
             message: "Deleted successfully"
         })
@@ -115,7 +144,7 @@ exports.profile = async (req, res, next) => {
 exports.technicianList = async (req, res, next) => {
     try {
         const technicianList = await Technician.find()
-        .populate("role");
+            .populate("role");
         res.status(200).json({
             data: technicianList
         })

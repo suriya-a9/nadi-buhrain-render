@@ -2,6 +2,7 @@ const Admin = require('./admin.model');
 const jwt = require('jsonwebtoken');
 const config = require('../../config/default');
 const bcrypt = require('bcrypt');
+const UserLog = require("../userLogs/userLogs.model");
 
 exports.adminRegister = async (req, res, next) => {
     const { name, email, password } = req.body;
@@ -56,7 +57,13 @@ exports.adminLogin = async (req, res, next) => {
             config.jwt,
             { expiresIn: "1d" }
         );
-
+        await UserLog.create({
+            userId: admin._id,
+            log: "Signed In",
+            status: "Logged",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        });
         res.status(200).json({ success: true, message: "Logged in", token });
     } catch (err) {
         next(err);

@@ -1,6 +1,7 @@
 const MaterialRequest = require('./materialRequest.model');
 const Inventory = require("../inventory/inventory.model");
 const SpareParts = require("../spareParts/spareParts.model");
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.singleRequest = async (req, res, next) => {
     const { productId, quantity, notes } = req.body;
@@ -33,6 +34,13 @@ exports.singleRequest = async (req, res, next) => {
             productId: product._id,
             quantity,
             notes
+        });
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Requested for ${product.productName}`,
+            status: "Requested",
+            logo: "/assets/product-management.webp",
+            time: new Date()
         });
         res.status(201).json({
             message: "Material request created successfully"
@@ -88,7 +96,13 @@ exports.bulkRequest = async (req, res, next) => {
         }));
 
         await MaterialRequest.insertMany(bulkData);
-
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Bulk requested for products`,
+            status: "Requested",
+            logo: "/assets/product-management.webp",
+            time: new Date()
+        });
         res.status(201).json({
             message: "Bulk material requests submitted successfully",
             totalRequests: requests.length
@@ -138,7 +152,13 @@ exports.responseMaterialRequest = async (req, res, next) => {
                     count: reqQty.toString()
                 });
             }
-
+            await UserLog.create({
+                userId: req.user.id,
+                log: `Processed material request for ${inventory.productName}`,
+                status: "Requested",
+                logo: "/assets/product-management.webp",
+                time: new Date()
+            });
             return res.status(200).json({
                 message: "Request processed, inventory and spare parts updated",
                 data: request
@@ -155,3 +175,48 @@ exports.responseMaterialRequest = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.productTechnicians = async (req, res, next) => {
+    try {
+        const productId = req.params.productId;
+        const requests = await MaterialRequest.find({ productId })
+            .populate('technicianId', 'firstName lastName email');
+        const data = requests.map(r => ({
+            _id: r._id,
+            technician: r.technicianId,
+            quantity: r.quantity,
+            status: r.status
+        }));
+        res.json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.listMaterialRequests = async (req, res, next) => {
+    try {
+        const listData = await MaterialRequest.find()
+            .populate("technicianId")
+            .populate("productId");
+        res.status(200).json({
+            success: true,
+            data: listData
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+
+exports.listSpareParts = async () => {
+    try {
+        const listData = await SpareParts.find()
+            .populate("technicianId")
+            .populate("productId");
+        res.status(200).json({
+            success: true,
+            data: listData
+        })
+    } catch (err) {
+        next(err)
+    }
+}

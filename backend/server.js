@@ -37,10 +37,12 @@ const notificationRouter = require("./modules/adminPanel/notification/notificati
 const dashboardRouter = require('./modules/adminPanel/dashboard/dashboard.routes');
 const inventoryRouter = require('./modules/adminPanel/inventory/inventory.routes');
 const materialRequestRouter = require('./modules/adminPanel/materialRequest/materialRequest.routes');
+const userLogRouter = require("./modules/userLogs/userLogs.routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
+app.use('/assets', express.static('assets'));
 
 app.use(cors());
 app.use(helmet());
@@ -77,6 +79,7 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/material", materialRequestRouter);
+app.use("/api/user-log", userLogRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

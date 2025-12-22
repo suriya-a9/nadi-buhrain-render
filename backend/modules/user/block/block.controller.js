@@ -1,5 +1,6 @@
 const Block = require("./block.model");
 const Road = require("../road/road.model");
+const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addBlock = async (req, res, next) => {
   const { roadId, name } = req.body;
@@ -7,6 +8,13 @@ exports.addBlock = async (req, res, next) => {
     const blockData = await Block.create({
       roadId,
       name,
+    });
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Block - ${blockData.name} created`,
+      status: "Created",
+      logo: "/assets/apartment.webp",
+      time: new Date()
     });
     res.status(201).json({
       message: "Created successfully",
@@ -43,7 +51,14 @@ exports.updateBlock = async (req, res, next) => {
       id,
       updateFields,
       { new: true }
-    )
+    );
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Block - ${blockData.name} updated`,
+      status: "Updated",
+      logo: "/assets/apartment.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: "Updated successfully",
       data: blockData
@@ -56,7 +71,14 @@ exports.updateBlock = async (req, res, next) => {
 exports.deleteBlock = async (req, res, next) => {
   const { id } = req.body;
   try {
-    await Block.findByIdAndDelete(id);
+    const blockData = await Block.findByIdAndDelete(id);
+    await UserLog.create({
+      userId: req.user.id,
+      log: `Block - ${blockData.name} Deleted`,
+      status: "Deleted",
+      logo: "/assets/apartment.webp",
+      time: new Date()
+    });
     res.status(200).json({
       message: "Deleted successfully"
     })

@@ -2,6 +2,7 @@ const UserAccount = require('../../userAccount/userAccount.model');
 const Points = require('../points/points.model');
 const FamilyMember = require('../../userAccount/familyMember.model');
 const Address = require('../../address/address.model');
+const UserLog = require('../../userLogs/userLogs.model');
 
 exports.verifyAccount = async (req, res, next) => {
     const { userId, status, reason } = req.body;
@@ -39,6 +40,13 @@ exports.verifyAccount = async (req, res, next) => {
             updateFields,
             { new: true }
         );
+        await UserLog.create({
+            userId: req.user.id,
+            log: `Account verification has been done for user ${user.basicInfo.fullName}`,
+            status: "Account Verification",
+            logo: "/assets/verification.webp",
+            time: new Date()
+        })
         res.status(200).json({ message: "Account verification updated", data: result });
     } catch (err) {
         next(err);
