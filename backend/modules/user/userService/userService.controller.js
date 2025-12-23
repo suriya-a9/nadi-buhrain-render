@@ -67,6 +67,7 @@ exports.createRequest = async (req, res, next) => {
             time: new Date()
         });
         res.status(201).json({
+            success: true,
             message: "Service created successfully",
             data: requestCreate
         })
@@ -74,6 +75,55 @@ exports.createRequest = async (req, res, next) => {
         next(err)
     }
 }
+// exports.userServiceList = async (req, res, next) => {
+//     try {
+//         const userId = req.user.id;
+//         if (!userId) {
+//             return res.status(404).json({
+//                 message: "user id needed"
+//             });
+//         }
+
+//         const page = parseInt(req.query.page) || 10;
+//         const limit = parseInt(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         const totalCount = await UserService.countDocuments({ userId });
+
+//         const userServicesList = await UserService.find({ userId })
+//             .populate('serviceId')
+//             .populate('issuesId')
+//             .populate('technicianId')
+//             .skip(skip)
+//             .limit(limit);
+
+//         const formattedList = userServicesList.map(service => {
+//             const formattedTimestamps = {};
+//             Object.entries(service.statusTimestamps || {}).forEach(([key, value]) => {
+//                 formattedTimestamps[key] = formatDate(value, true);
+//             });
+//             return {
+//                 ...service.toObject(),
+//                 statusTimestamps: formattedTimestamps,
+//                 scheduleService: formatDate(service.scheduleService, true),
+//                 createdAt: formatDate(service.createdAt, true),
+//                 updatedAt: formatDate(service.updatedAt, true)
+//             };
+//         });
+
+//         res.status(200).json({
+//             data: formattedList,
+//             pagination: {
+//                 totalItems: totalCount,
+//                 currentPage: page,
+//                 totalPages: Math.ceil(totalCount / limit),
+//                 pageSize: limit
+//             }
+//         });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 exports.userServiceList = async (req, res, next) => {
     try {
         const userId = req.user.id;

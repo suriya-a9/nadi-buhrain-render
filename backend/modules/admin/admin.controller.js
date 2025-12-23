@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const UserLog = require("../userLogs/userLogs.model");
 
 exports.adminRegister = async (req, res, next) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role = 'admin' } = req.body;
     try {
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
@@ -22,7 +22,8 @@ exports.adminRegister = async (req, res, next) => {
         const adminData = await Admin.create({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            role
         });
 
         res.status(201).json({
@@ -53,7 +54,7 @@ exports.adminLogin = async (req, res, next) => {
         }
 
         const token = jwt.sign(
-            { id: admin._id, email: admin.email, name: admin.name },
+            { id: admin._id, email: admin.email, name: admin.name, role: admin.role },
             config.jwt,
             { expiresIn: "1d" }
         );
@@ -64,8 +65,52 @@ exports.adminLogin = async (req, res, next) => {
             logo: "/assets/user-login-logo.webp",
             time: new Date()
         });
-        res.status(200).json({ success: true, message: "Logged in", token });
+        res.status(200).json({ success: true, message: "Logged in", token, role: admin.role });
     } catch (err) {
         next(err);
     }
 };
+
+exports.listAdmins = async (req, res, next) => {
+    try {
+        const admins = await Admin.find().select("-password");
+        res.json({ success: true, data: admins });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.updateAdmin = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { name, role, password } = req.body;
+
+        const updateData = { name, role };
+        if (password) {
+            updateData.password = await bcrypt.hash(password, 10);
+        }
+
+        const updatedAdmin = await Admin.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedAdmin) {
+            return res.status(404).json({ success: false, message: "Admin not found" });
+        }
+
+        res.json({ success: true, message: "Admin updated", data: updatedAdmin });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+    const { email, password } = req.body;
+    try{
+
+    } catch(err){
+        next(err)
+    }
+}

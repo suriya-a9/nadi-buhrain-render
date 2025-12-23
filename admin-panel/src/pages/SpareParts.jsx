@@ -11,7 +11,7 @@ export default function SpareParts() {
     const loadSpareParts = async () => {
         setLoading(true);
         try {
-            const res = await api.get("/material");
+            const res = await api.get("/material/spare-parts");
             setSpareParts(res.data.data || []);
         } catch {
             setSpareParts([]);

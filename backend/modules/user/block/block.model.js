@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 
 const blockSchema = new mongoose.Schema(
   {
-    roadId:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Road"
-    },
     name: {
       type: String,
       required: true,
     },
+    roads: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Road"
+    }]
   },
   { timestamps: true }
 );

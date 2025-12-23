@@ -22,6 +22,14 @@ import Logs from "./pages/Logs";
 import Inventory from "./pages/Inventory";
 import MaterialRequests from "./pages/MaterialRequests";
 import SpareParts from "./pages/SpareParts";
+import TechnicianSkills from "./pages/TechnicianSkillSet";
+import TermsAndCondition from "./pages/TermsAndCondition";
+import Issues from "./pages/Issues";
+import AccountType from "./pages/AccountType";
+import Road from "./pages/Road";
+import Block from "./pages/Block";
+import ServiceRequestDetails from "./pages/ServiceRequestDetails";
+import AdminUser from "./pages/AdminUser";
 
 export default function App() {
   return (
@@ -98,7 +106,7 @@ export default function App() {
               }
             />
             <Route
-              path="/splash-screen"
+              path="/about-screen"
               element={
                 <PrivateRoute>
                   <DashboardLayout>
@@ -108,7 +116,7 @@ export default function App() {
               }
             />
             <Route
-              path="/about-screen"
+              path="/splash-screen"
               element={
                 <PrivateRoute>
                   <DashboardLayout>
@@ -183,6 +191,86 @@ export default function App() {
                 <PrivateRoute>
                   <DashboardLayout>
                     <SpareParts />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/technician-skill"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <TechnicianSkills />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/terms-condition"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <TermsAndCondition />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/issues"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Issues />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/account-type"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <AccountType />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/road"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Road />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/block"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Block />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/service-requests/:id"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <ServiceRequestDetails />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin-list"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <AdminUser />
                   </DashboardLayout>
                 </PrivateRoute>
               }

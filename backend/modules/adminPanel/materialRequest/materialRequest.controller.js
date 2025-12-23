@@ -207,7 +207,7 @@ exports.listMaterialRequests = async (req, res, next) => {
     }
 }
 
-exports.listSpareParts = async () => {
+exports.listSpareParts = async (req, res, next) => {
     try {
         const listData = await SpareParts.find()
             .populate("technicianId")

@@ -13,7 +13,12 @@ const adminSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    role: {
+        type: String,
+        enum: ['admin', 'inventory manager', 'points manager', 'service manager'],
+        default: 'admin'
+    },
 }, { timestamps: true });
 
 const Admin = mongoose.model("Admin", adminSchema);

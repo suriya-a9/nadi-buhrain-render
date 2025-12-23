@@ -66,12 +66,12 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <p className="text-center mt-5">
+                    {/* <p className="text-center mt-5">
                         Don’t have an account?
                         <Link className="text-bgGreen ml-1" to="/register">
                             Sign Up
                         </Link>
-                    </p>
+                    </p> */}
                 </div>
             </div>
 

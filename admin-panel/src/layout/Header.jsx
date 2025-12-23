@@ -107,7 +107,7 @@ export default function Header({ toggleSidebar }) {
                     )}
                 </button>
                 {showDropdown && (
-                    <div className="absolute right-0 top-[35px] mt-2 w-80 bg-white rounded shadow-md py-2 z-50">
+                    <div className="absolute right-0 top-[35px] h-[500px] overflow-y-scroll mt-2 w-80 bg-white rounded shadow-md py-2 z-50" id="notification">
                         <div className="flex justify-between items-center px-4 py-2">
                             <h3 className="font-semibold">Notifications</h3>
                             <button

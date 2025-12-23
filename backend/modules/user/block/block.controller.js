@@ -3,10 +3,10 @@ const Road = require("../road/road.model");
 const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addBlock = async (req, res, next) => {
-  const { roadId, name } = req.body;
+  const { roads, name } = req.body;
   try {
     const blockData = await Block.create({
-      roadId,
+      roads,
       name,
     });
     await UserLog.create({
@@ -25,19 +25,9 @@ exports.addBlock = async (req, res, next) => {
   }
 };
 
-exports.listRoadWithBlock = async (req, res) => {
+exports.listBlockWithRoads = async (req, res) => {
   try {
-    const data = await Road.aggregate([
-      {
-        $lookup: {
-          from: "blocks",
-          localField: "_id",
-          foreignField: "roadId",
-          as: "blocks",
-        },
-      },
-    ]);
-
+    const data = await Block.find().populate("roads"); 
     res.status(200).json({ data });
   } catch (err) {
     res.status(500).json({ error: err.message });

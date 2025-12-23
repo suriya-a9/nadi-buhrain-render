@@ -114,7 +114,7 @@ exports.assignTechnician = async (req, res, next) => {
 exports.technicianRespond = async (req, res, next) => {
     const { assignmentId, action, reason } = req.body;
     try {
-        const assignment = await TechnicianUserService.findById(assignmentId);
+        const assignment = await TechnicianUserService.findOne({ userServiceId: assignmentId });
         if (!assignment) {
             return res.status(404).json({ message: "Assignment not found" });
         }
