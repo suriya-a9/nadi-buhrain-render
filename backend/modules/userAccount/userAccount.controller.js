@@ -54,12 +54,10 @@ exports.saveBasicInfo = async (req, res, next) => {
             step: 2
         })
         res.status(200).json({
-            data: {
-                name: fullName,
-                mobile: mobileNumber,
-                email: email,
-                gender: gender
-            },
+            name: fullName,
+            mobile: mobileNumber,
+            email: email,
+            gender: gender,
             message: "Basic info saved",
         })
     } catch (err) {
@@ -388,9 +386,7 @@ exports.signIn = async (req, res, next) => {
             time: new Date()
         })
         res.status(200).json({
-            data: {
-                name: user.basicInfo.fullName
-            },
+            name: user.basicInfo.fullName,
             token: token,
             accountType: accountType ? accountType.type : null
         });
