@@ -54,9 +54,8 @@ exports.saveBasicInfo = async (req, res, next) => {
             step: 2
         })
         res.status(200).json({
-            name: addBasicInfo.basicInfo.fullName,
+            name: fullName,
             message: "Basic info saved",
-            data: addBasicInfo
         })
     } catch (err) {
         next(err)
