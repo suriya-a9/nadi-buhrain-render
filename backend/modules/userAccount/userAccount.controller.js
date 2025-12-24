@@ -443,7 +443,7 @@ exports.updateBasicInfoAndAddress = async (req, res, next) => {
             });
         }
         await UserLog.create({
-            userId: user._id,
+            userId: userId,
             log: 'Updated profile details',
             status: "Updated",
             logo: "/assets/user-login-logo.webp",
