@@ -383,6 +383,7 @@ exports.signIn = async (req, res, next) => {
             time: new Date()
         })
         res.status(200).json({
+            name: user.basicInfo.fullName,
             token: token,
             accountType: accountType ? accountType.type : null
         });
