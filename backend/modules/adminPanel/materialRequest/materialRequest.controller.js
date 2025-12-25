@@ -17,6 +17,11 @@ exports.singleRequest = async (req, res, next) => {
                 message: "no such product"
             });
         }
+        if (product.stock === false) {
+            return res.status(404).json({
+                message: "product currently out of stock"
+            });
+        }
         const availableQty = parseInt(product.quantity, 10);
         const requestedQty = parseInt(quantity, 10);
         if (isNaN(availableQty) || isNaN(requestedQty)) {
@@ -71,7 +76,11 @@ exports.bulkRequest = async (req, res, next) => {
                     message: `Product not found: ${productId}`
                 });
             }
-
+            if (product.stock === false) {
+                return res.status(404).json({
+                    message: "product currently out of stock"
+                });
+            }
             const availableQty = parseInt(product.quantity, 10);
             const requestedQty = parseInt(quantity, 10);
 

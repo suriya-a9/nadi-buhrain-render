@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Inventory() {
     const [inventory, setInventory] = useState([]);
@@ -29,8 +30,12 @@ export default function Inventory() {
     const token = localStorage.getItem("token");
 
     const loadInventory = async () => {
-        const res = await api.get("/inventory/product-list");
-        setInventory(res.data.data);
+        try {
+            const res = await api.get("/inventory/product-list");
+            setInventory(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     useEffect(() => {
@@ -76,32 +81,46 @@ export default function Inventory() {
         e.preventDefault();
         const payload = { ...form };
         if (editData) payload.id = editData._id;
-
-        await api.post(
-            editData ? "/inventory/update-products" : "/inventory/add-products",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadInventory();
+        try {
+            const res = await api.post(
+                editData ? "/inventory/update-products" : "/inventory/add-products",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadInventory();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const deleteInventory = async (id) => {
-        await api.post(
-            "/inventory/delete-products",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadInventory();
+        try {
+            const res = await api.post(
+                "/inventory/delete-products",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadInventory();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const toggleStock = async (item) => {
-        await api.post(
-            "/inventory/stock-update",
-            { id: item._id, stock: !item.stock },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadInventory();
+        try {
+            const res = await api.post(
+                "/inventory/stock-update",
+                { id: item._id, stock: !item.stock },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadInventory();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const totalPages = Math.ceil(inventory.length / ITEMS_PER_PAGE);
@@ -125,6 +144,12 @@ export default function Inventory() {
 
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Product Name", key: "productName" },
                     { title: "Quantity", key: "quantity" },
                     { title: "Price", key: "price" },

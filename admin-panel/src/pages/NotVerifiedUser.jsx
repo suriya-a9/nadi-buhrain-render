@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function NotVerifiedUser() {
     const [users, setUsers] = useState([]);
@@ -26,7 +27,7 @@ export default function NotVerifiedUser() {
             const res = await api.get("/account-verify/list");
             setUsers(res.data.data || []);
         } catch (err) {
-            console.error(err);
+            toast.error(err.response?.data?.message);
         } finally {
             setLoading(false);
         }
@@ -38,8 +39,7 @@ export default function NotVerifiedUser() {
             setSelectedUser(res.data.data);
             setDetailsOpen(true);
         } catch (err) {
-            console.error(err);
-            alert("Failed to load details");
+            toast.error(err.response?.data?.message);
         }
     };
 
@@ -47,13 +47,12 @@ export default function NotVerifiedUser() {
         try {
             const payload = { userId: id, status };
             if (status === "rejected" && reason) payload.reason = reason;
-            await api.post("/account-verify", payload);
+            const res = await api.post("/account-verify", payload);
+            toast.success(res.data.message);
             await loadUsers();
             setDetailsOpen(false);
-            alert(`User ${status}`);
         } catch (err) {
-            console.error(err);
-            alert("Failed to update status");
+            toast.error(err.response?.data?.message);
         }
     };
 
@@ -98,6 +97,12 @@ export default function NotVerifiedUser() {
 
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Full Name", key: "basicInfo.fullName" },
                     { title: "Mobile", key: "basicInfo.mobileNumber" },
                     { title: "Email", key: "basicInfo.email" },

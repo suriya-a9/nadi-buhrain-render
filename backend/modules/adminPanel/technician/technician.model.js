@@ -27,6 +27,10 @@ const technicianSchema = new mongoose.Schema({
     password: {
         type: String
     },
+    status: {
+        type: Boolean,
+        default: true,
+    }
 });
 
 const Technician = mongoose.model('Technician', technicianSchema);

@@ -3,12 +3,27 @@ import { useNavigate } from "react-router-dom";
 import Table from "../components/Table";
 import api from "../services/api";
 import Pagination from "../components/Pagination";
-const getLastUpdatedStatus = (statusTimestamps = {}) => {
+function getLastUpdatedStatusWithTime(statusTimestamps = {}) {
     const entries = Object.entries(statusTimestamps)
         .filter(([, value]) => value)
         .sort((a, b) => new Date(a[1]) - new Date(b[1]));
-    return entries.length ? entries[entries.length - 1][0] : "-";
-};
+    if (!entries.length) return { status: "-", time: "-" };
+    const [status, time] = entries[entries.length - 1];
+    return { status, time };
+}
+function formatDateTime(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12 || 12;
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+}
 
 export default function ServiceRequestList() {
     const navigate = useNavigate();
@@ -23,6 +38,7 @@ export default function ServiceRequestList() {
     const [techWorkStatus, setTechWorkStatus] = useState(null);
     const [techWorkStatusLoading, setTechWorkStatusLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
+    const [scheduledDateFilter, setScheduledDateFilter] = useState("");
     const acceptedRequests = requests.filter(r => r.technicianAccepted === true);
     const rejectedRequests = requests.filter(r => r.technicianAccepted === false && r.technicianId);
     const notAssignedRequests = requests.filter(r => !r.technicianId);
@@ -41,10 +57,22 @@ export default function ServiceRequestList() {
         const requestedBy = r.userId?.basicInfo?.fullName?.toLowerCase() || "";
         const status = r.serviceStatus?.toLowerCase() || "";
         const q = search.toLowerCase();
+
+        let dateMatch = true;
+        if (scheduledDateFilter && r.scheduleService) {
+            const d = new Date(r.scheduleService);
+            const filterDate = new Date(scheduledDateFilter);
+            dateMatch =
+                d.getFullYear() === filterDate.getFullYear() &&
+                d.getMonth() === filterDate.getMonth() &&
+                d.getDate() === filterDate.getDate();
+        }
+
         return (
-            requestId.includes(q) ||
-            requestedBy.includes(q) ||
-            status.includes(q)
+            (requestId.includes(q) ||
+                requestedBy.includes(q) ||
+                status.includes(q)) &&
+            dateMatch
         );
     });
     const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
@@ -201,16 +229,38 @@ export default function ServiceRequestList() {
             </div>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Service Requests List</h2>
-                <input
-                    type="text"
-                    placeholder="Search by Request ID, Requested By, or Status"
-                    className="border px-3 py-2 rounded w-[350px]"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
+                <div className="flex gap-4 items-end">
+                    <div className="flex flex-col">
+                        <label htmlFor="search" className="text-xs font-medium mb-1">Search</label>
+                        <input
+                            id="search"
+                            type="text"
+                            placeholder="Search by Request ID, Requested By, or Status"
+                            className="border px-3 py-2 rounded w-[200px]"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <label htmlFor="scheduled-date" className="text-xs font-medium mb-1">Scheduled Date</label>
+                        <input
+                            id="scheduled-date"
+                            type="date"
+                            className="border px-3 py-2 rounded"
+                            value={scheduledDateFilter}
+                            onChange={e => setScheduledDateFilter(e.target.value)}
+                        />
+                    </div>
+                </div>
             </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Request ID", key: "serviceRequestID" },
                     { title: "Requested By", key: "userId.basicInfo.fullName" },
                     { title: "Service Name", key: "serviceId.name" },
@@ -224,9 +274,14 @@ export default function ServiceRequestList() {
                     {
                         title: "Status",
                         key: "statusTimestamps",
-                        render: (_, row) => (
-                            <StatusDropdown statusTimestamps={row.statusTimestamps} />
-                        ),
+                        render: (_, row) => {
+                            const { status, time } = getLastUpdatedStatusWithTime(row.statusTimestamps);
+                            return (
+                                <span>
+                                    {status} {time && time !== "-" ? `(${formatDateTime(time)})` : ""}
+                                </span>
+                            );
+                        },
                     },
                 ]}
                 data={paginatedData}

@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Block() {
     const [blockList, setBlockList] = useState([]);
@@ -23,8 +24,12 @@ export default function Block() {
     const token = localStorage.getItem("token");
 
     const loadRoads = async () => {
-        const res = await api.get("/road/");
-        setRoadOptions(res.data.data);
+        try {
+            const res = await api.get("/road/");
+            setRoadOptions(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const loadBlockList = async () => {
@@ -65,23 +70,32 @@ export default function Block() {
         e.preventDefault();
         const payload = { ...form };
         if (editData) payload.id = editData._id;
-
-        await api.post(
-            editData ? "/block/update" : "/block/add",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadBlockList();
+        try {
+            const res = await api.post(
+                editData ? "/block/update" : "/block/add",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadBlockList();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const deleteBlock = async (id) => {
-        await api.post(
-            "/block/delete",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadBlockList();
+        try {
+            const res = await api.post(
+                "/block/delete",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadBlockList();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const totalPages = Math.ceil(blockList.length / ITEMS_PER_PAGE);
@@ -112,6 +126,12 @@ export default function Block() {
             </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Block Name", key: "name" },
                     {
                         title: "Road(s)",

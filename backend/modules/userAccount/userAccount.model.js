@@ -16,6 +16,7 @@ const userAccountSchema = new mongoose.Schema({
         },
         mobileNumber: {
             type: Number,
+            unique: true
         },
         email: {
             type: String,
@@ -81,6 +82,10 @@ const userAccountSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "FamilyMember",
         default: null
+    },
+    accountStatus: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true })
 

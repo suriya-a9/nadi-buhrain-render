@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import Table from "../components/Table";
 import api from "../services/api";
 import Pagination from "../components/Pagination";
+function formatDateTime(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12 || 12;
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+}
 
 export default function ServiceRequest() {
     const [requests, setRequests] = useState([]);
@@ -11,6 +24,8 @@ export default function ServiceRequest() {
     const [statusUpdating, setStatusUpdating] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState("");
+    const [search, setSearch] = useState("");
+    const [scheduledDateFilter, setScheduledDateFilter] = useState("");
     const ITEMS_PER_PAGE = 10;
     const [currentPage, setCurrentPage] = useState(1);
     useEffect(() => {
@@ -95,9 +110,32 @@ export default function ServiceRequest() {
         "paymentInProgress",
         "completed"
     ];
-    const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE);
+    const filteredRequests = requests.filter(r => {
+        const requestId = r.serviceRequestID?.toLowerCase() || "";
+        const requestedBy = r.userId?.basicInfo?.fullName?.toLowerCase() || "";
+        const status = r.serviceStatus?.toLowerCase() || "";
+        const q = search.toLowerCase();
 
-    const paginatedRequests = requests.slice(
+        let dateMatch = true;
+        if (scheduledDateFilter && r.scheduleService) {
+            const d = new Date(r.scheduleService);
+            const filterDate = new Date(scheduledDateFilter);
+            dateMatch =
+                d.getFullYear() === filterDate.getFullYear() &&
+                d.getMonth() === filterDate.getMonth() &&
+                d.getDate() === filterDate.getDate();
+        }
+
+        return (
+            (requestId.includes(q) ||
+                requestedBy.includes(q) ||
+                status.includes(q)) &&
+            dateMatch
+        );
+    });
+    const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
+
+    const paginatedRequests = filteredRequests.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
@@ -107,14 +145,47 @@ export default function ServiceRequest() {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">New Service Requests</h2>
             </div>
+            <div className="flex gap-4 items-end mb-4">
+                <div className="flex flex-col">
+                    <label htmlFor="search" className="text-xs font-medium mb-1">Search</label>
+                    <input
+                        id="search"
+                        type="text"
+                        placeholder="Search by Request ID, Requested By, or Status"
+                        className="border px-3 py-2 rounded w-[200px]"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-col">
+                    <label htmlFor="scheduled-date" className="text-xs font-medium mb-1">Scheduled Date</label>
+                    <input
+                        id="scheduled-date"
+                        type="date"
+                        className="border px-3 py-2 rounded"
+                        value={scheduledDateFilter}
+                        onChange={e => setScheduledDateFilter(e.target.value)}
+                    />
+                </div>
+            </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Request ID", key: "serviceRequestID" },
                     { title: "Requested By", key: "userId.basicInfo.fullName" },
                     { title: "Service Name", key: "serviceId.name" },
                     { title: "Issue Name", key: "issuesId.issue" },
                     { title: "Feedback", key: "feedback" },
-                    { title: "Scheduled Date", key: "scheduleService" },
+                    {
+                        title: "Scheduled Date",
+                        key: "scheduleService",
+                        render: (value) => formatDateTime(value),
+                    },
                     {
                         title: "Is Urgent?",
                         dataIndex: "immediateAssistance",
@@ -179,7 +250,7 @@ export default function ServiceRequest() {
                                 </div>
                                 <div>
                                     <div className="font-medium">Scheduled Date</div>
-                                    <div className="text-gray-700 dark:text-gray-300">{selected.scheduleService}</div>
+                                    <div className="text-gray-700">{formatDateTime(selected.scheduleService)}</div>
                                 </div>
                                 <div>
                                     <div className="font-medium">Is Urgent?</div>
@@ -202,7 +273,7 @@ export default function ServiceRequest() {
                                     {Object.entries(selected.statusTimestamps || {}).map(([status, time]) => (
                                         <div key={status}>
                                             <span className="font-medium">{status}:</span>{" "}
-                                            <span className="text-gray-700 dark:text-gray-300">{time || "-"}</span>
+                                            <span className="text-gray-700 dark:text-gray-300">{formatDateTime(time)}</span>
                                         </div>
                                     ))}
                                 </div>

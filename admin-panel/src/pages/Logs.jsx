@@ -38,6 +38,12 @@ export default function Logs() {
             <Table
                 columns={[
                     {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
+                    {
                         title: "Logo",
                         key: "logo",
                         render: (logo) =>

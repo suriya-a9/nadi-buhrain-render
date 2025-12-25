@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function User() {
     const [users, setUsers] = useState([]);
@@ -26,7 +27,7 @@ export default function User() {
             const res = await api.get("/account-verify/all-user-list");
             setUsers(res.data.data || []);
         } catch (err) {
-            console.error(err);
+            toast.error(err.response?.data?.message);
         } finally {
             setLoading(false);
         }
@@ -38,14 +39,27 @@ export default function User() {
             setSelectedUser(res.data.data);
             setDetailsOpen(true);
         } catch (err) {
-            console.error(err);
-            alert("Failed to load details");
+            toast.error(err.response?.data?.message);
         }
     };
 
     useEffect(() => {
         loadUsers();
     }, []);
+
+    const toggleUserStatus = async (user) => {
+        try {
+            const res = await api.post(
+                "/account-verify/set-status",
+                { id: user._id, status: !user.accountStatus },
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+            toast.success(res.data.message);
+            loadUsers();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
+    };
 
     const renderIdProofs = (files = []) => {
         if (!files || !files.length) return <div className="text-gray-700">No ID proofs</div>;
@@ -81,11 +95,17 @@ export default function User() {
 
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Full Name", key: "basicInfo.fullName" },
                     { title: "Mobile", key: "basicInfo.mobileNumber" },
                     { title: "Email", key: "basicInfo.email" },
                     { title: "Account Type", key: "accountTypeId.name" },
-                    { title: "Status", key: "accountVerification" }
+                    { title: "Status", key: "accountVerification" },
                 ]}
                 data={paginatedUsers}
                 actions={(row) => (
@@ -95,6 +115,12 @@ export default function User() {
                             className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
                         >
                             View
+                        </button>
+                        <button
+                            onClick={() => toggleUserStatus(row)}
+                            className={`px-2 py-1 rounded text-sm ${row.accountStatus ? "bg-red-500" : "bg-green-500"} text-white`}
+                        >
+                            {row.accountStatus ? "Disable" : "Enable"}
                         </button>
                     </div>
                 )}

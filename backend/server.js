@@ -38,6 +38,7 @@ const dashboardRouter = require('./modules/adminPanel/dashboard/dashboard.routes
 const inventoryRouter = require('./modules/adminPanel/inventory/inventory.routes');
 const materialRequestRouter = require('./modules/adminPanel/materialRequest/materialRequest.routes');
 const userLogRouter = require("./modules/userLogs/userLogs.routes");
+const roleRouter = require("./modules/roles/role.routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -80,6 +81,7 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/material", materialRequestRouter);
 app.use("/api/user-log", userLogRouter);
+app.use("/api/role", roleRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

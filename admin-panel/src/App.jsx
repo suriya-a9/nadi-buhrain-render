@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PermissionRoute from "./components/PermissionRoute";
 import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -30,6 +31,9 @@ import Road from "./pages/Road";
 import Block from "./pages/Block";
 import ServiceRequestDetails from "./pages/ServiceRequestDetails";
 import AdminUser from "./pages/AdminUser";
+import RoleManager from "./pages/RoleManager";
+import Roles from "./pages/Roles";
+import ForgotPassword from "./pages/ForgotPassword";
 
 export default function App() {
   return (
@@ -45,7 +49,6 @@ export default function App() {
                 </PublicRoute>
               }
             />
-
             <Route
               path="/register"
               element={
@@ -54,84 +57,72 @@ export default function App() {
                 </PublicRoute>
               }
             />
-
+            <Route
+              path="/forgot-password"
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              }
+            />
             <Route
               path="/"
               element={
                 <ProtectedRoute>
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
+                  <PermissionRoute permission="dashboard">
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/services"
+              path="/account-type"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <Services />
-                  </DashboardLayout>
+                  <PermissionRoute permission="dashboard">
+                    <DashboardLayout>
+                      <AccountType />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin-list"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="admin-list">
+                    <DashboardLayout>
+                      <AdminUser />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />
             <Route
-              path="/users"
+              path="/roles"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <User />
-                  </DashboardLayout>
+                  <PermissionRoute permission="admin-list">
+                    <DashboardLayout>
+                      <Roles />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />
             <Route
-              path="/technicians"
+              path="/role-manager"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <Technicians />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/not-verified"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <NotVerifiedUser />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/about-screen"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Intro />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/splash-screen"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <LoadingScreen />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-requests"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <ServiceRequest />
-                  </DashboardLayout>
+                  <PermissionRoute permission="admin-list">
+                    <DashboardLayout>
+                      <RoleManager />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />
@@ -139,119 +130,11 @@ export default function App() {
               path="/service-requests"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <ServiceRequestList />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/points"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Points />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/user-logs"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Logs />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/inventory"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Inventory />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/material-requests"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <MaterialRequests />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/spare-parts"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <SpareParts />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/technician-skill"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <TechnicianSkills />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/terms-condition"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <TermsAndCondition />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/issues"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Issues />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/account-type"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <AccountType />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/road"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Road />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/block"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Block />
-                  </DashboardLayout>
+                  <PermissionRoute permission="service-requests">
+                    <DashboardLayout>
+                      <ServiceRequestList />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />
@@ -259,19 +142,215 @@ export default function App() {
               path="/service-requests/:id"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <ServiceRequestDetails />
-                  </DashboardLayout>
+                  <PermissionRoute permission="service-requests">
+                    <DashboardLayout>
+                      <ServiceRequestDetails />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />
             <Route
-              path="/admin-list"
+              path="/new-requests"
               element={
                 <PrivateRoute>
-                  <DashboardLayout>
-                    <AdminUser />
-                  </DashboardLayout>
+                  <PermissionRoute permission="service-requests">
+                    <DashboardLayout>
+                      <ServiceRequest />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/services"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="services">
+                    <DashboardLayout>
+                      <Services />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/issues"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="services">
+                    <DashboardLayout>
+                      <Issues />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="users">
+                    <DashboardLayout>
+                      <User />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/not-verified"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="users">
+                    <DashboardLayout>
+                      <NotVerifiedUser />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/technicians"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="technicians">
+                    <DashboardLayout>
+                      <Technicians />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/technician-skill"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="technicians">
+                    <DashboardLayout>
+                      <TechnicianSkills />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/road"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="address">
+                    <DashboardLayout>
+                      <Road />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/block"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="address">
+                    <DashboardLayout>
+                      <Block />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/points"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="points">
+                    <DashboardLayout>
+                      <Points />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="inventory">
+                    <DashboardLayout>
+                      <Inventory />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/material-requests"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="inventory">
+                    <DashboardLayout>
+                      <MaterialRequests />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/spare-parts"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="inventory">
+                    <DashboardLayout>
+                      <SpareParts />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/splash-screen"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="Settings">
+                    <DashboardLayout>
+                      <LoadingScreen />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/about-screen"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="Settings">
+                    <DashboardLayout>
+                      <Intro />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/terms-condition"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="Settings">
+                    <DashboardLayout>
+                      <TermsAndCondition />
+                    </DashboardLayout>
+                  </PermissionRoute>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user-logs"
+              element={
+                <PrivateRoute>
+                  <PermissionRoute permission="user-logs">
+                    <DashboardLayout>
+                      <Logs />
+                    </DashboardLayout>
+                  </PermissionRoute>
                 </PrivateRoute>
               }
             />

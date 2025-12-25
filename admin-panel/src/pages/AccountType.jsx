@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function AccountType() {
     const [accountList, setAccountList] = useState([]);
@@ -20,15 +21,20 @@ export default function AccountType() {
     const token = localStorage.getItem("token");
 
     const loadAccountList = async () => {
-        const res = await api.get("/account-type/");
-        setAccountList(res.data.data);
+        try {
+            const res = await api.get("/account-type/");
+            setAccountList(res.data.data);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Something went wrong");
+        }
     };
 
     useEffect(() => {
         loadAccountList();
     }, []);
+
     const openCreate = () => {
-        setForm({ issue: "" });
+        setForm({ name: "", type: "" });
         setEditData(null);
         setOpenCanvas(true);
     };
@@ -47,22 +53,32 @@ export default function AccountType() {
         const payload = { ...form };
         if (editData) payload.id = editData._id;
 
-        await api.post(
-            editData ? "/account-type/update" : "/account-type/add",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadAccountList();
+        try {
+            const res = await api.post(
+                editData ? "/account-type/update" : "/account-type/add",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message || "Saved successfully");
+            setOpenCanvas(false);
+            loadAccountList();
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Something went wrong");
+        }
     };
 
     const deleteAccountType = async (id) => {
-        await api.post(
-            "/account-type/delete",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadAccountList();
+        try {
+            const res = await api.post(
+                "/account-type/delete",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message || "Deleted successfully");
+            loadAccountList();
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Failed to delete account type");
+        }
     };
 
     const totalPages = Math.ceil(accountList.length / ITEMS_PER_PAGE);

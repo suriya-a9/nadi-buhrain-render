@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function TermsAndCondition() {
     const [termsAndCondition, setTermsAndCondition] = useState([]);
@@ -18,8 +19,12 @@ export default function TermsAndCondition() {
     }, [termsAndCondition]);
     const token = localStorage.getItem("token");
     const loadTermsAndCondition = async () => {
-        const res = await api.get("/terms/");
-        setTermsAndCondition(res.data.data);
+        try {
+            const res = await api.get("/terms/");
+            setTermsAndCondition(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
     useEffect(() => {
         loadTermsAndCondition();
@@ -43,22 +48,31 @@ export default function TermsAndCondition() {
         e.preventDefault();
         const payload = { ...form };
         if (editData) payload.id = editData._id;
-
-        await api.post(
-            editData ? "/terms/update" : "/terms/add",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadTermsAndCondition();
+        try {
+            const res = await api.post(
+                editData ? "/terms/update" : "/terms/add",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadTermsAndCondition();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
     const deleteTermsAndCondition = async (id) => {
-        await api.post(
-            "/terms/delete",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadTermsAndCondition();
+        try {
+            const res = await api.post(
+                "/terms/delete",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadTermsAndCondition();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
     const totalPages = Math.ceil(termsAndCondition.length / ITEMS_PER_PAGE);
 

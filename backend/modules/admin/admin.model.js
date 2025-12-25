@@ -15,9 +15,8 @@ const adminSchema = new mongoose.Schema({
         required: true
     },
     role: {
-        type: String,
-        enum: ['admin', 'inventory manager', 'points manager', 'service manager'],
-        default: 'admin'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Role"
     },
 }, { timestamps: true });
 

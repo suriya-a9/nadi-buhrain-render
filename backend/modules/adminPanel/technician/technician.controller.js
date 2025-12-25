@@ -52,6 +52,11 @@ exports.loginTechnician = async (req, res, next) => {
                 message: 'no account found with this email id'
             })
         }
+        if (emailData.status !== true) {
+            return res.status(404).json({
+                message: 'account disabled'
+            })
+        }
         const passwordMatch = await bcrypt.compare(password, emailData.password);
         if (!passwordMatch) {
             return res.status(401).json({
@@ -152,3 +157,19 @@ exports.technicianList = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.setUserStatus = async (req, res, next) => {
+    const { id, status } = req.body;
+    try {
+        const techician = await Technician.findByIdAndUpdate(id, { status: status }, { new: true });
+        if (!techician) {
+            return res.status(404).json({ message: "techician not found" });
+        }
+        res.status(200).json({
+            message: "techician status updated",
+            data: techician
+        });
+    } catch (err) {
+        next(err);
+    }
+};

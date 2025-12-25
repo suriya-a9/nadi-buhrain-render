@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Road() {
     const [roadList, setRoadList] = useState([]);
@@ -19,8 +20,12 @@ export default function Road() {
     const token = localStorage.getItem("token");
 
     const loadRoadList = async () => {
-        const res = await api.get("/road/");
-        setRoadList(res.data.data);
+        try {
+            const res = await api.get("/road/");
+            setRoadList(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     useEffect(() => {
@@ -44,23 +49,32 @@ export default function Road() {
         e.preventDefault();
         const payload = { ...form };
         if (editData) payload.id = editData._id;
-
-        await api.post(
-            editData ? "/road/update" : "/road/add",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadRoadList();
+        try {
+            const res = await api.post(
+                editData ? "/road/update" : "/road/add",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadRoadList();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const deleteRoad = async (id) => {
-        await api.post(
-            "/road/delete",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadRoadList();
+        try {
+            const res = await api.post(
+                "/road/delete",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadRoadList();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const totalPages = Math.ceil(roadList.length / ITEMS_PER_PAGE);
@@ -83,6 +97,12 @@ export default function Road() {
             </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Name", key: "name" }
                 ]}
                 data={paginatedRoad}

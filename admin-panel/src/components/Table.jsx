@@ -1,9 +1,9 @@
 function getValue(obj, key) {
-    if (!key) return "";
-    if (!obj) return "";
-    return key.split(".").reduce((acc, part) => {
-        return acc && acc[part] !== undefined ? acc[part] : "";
-    }, obj);
+  if (!key) return "";
+  if (!obj) return "";
+  return key.split(".").reduce((acc, part) => {
+    return acc && acc[part] !== undefined ? acc[part] : "";
+  }, obj);
 }
 
 
@@ -39,7 +39,7 @@ export default function Table({ columns = [], data = [], actions }) {
                 </td>
               </tr>
             ) : (
-              data.map((row) => (
+              data.map((row, idx) => (
                 <tr
                   key={row._id}
                   className="border-b hover:bg-gray-50 transition"
@@ -50,7 +50,7 @@ export default function Table({ columns = [], data = [], actions }) {
                       className="p-3 whitespace-nowrap"
                     >
                       {col.render
-                        ? col.render(getValue(row, col.key), row)
+                        ? col.render(getValue(row, col.key), row, idx)
                         : getValue(row, col.key)}
                     </td>
                   ))}

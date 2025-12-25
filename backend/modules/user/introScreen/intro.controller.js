@@ -3,11 +3,11 @@ const UserLog = require("../../userLogs/userLogs.model");
 
 exports.addIntro = async (req, res, next) => {
     try {
-        const { content } = req.body;
+        const { content, status } = req.body;
         if (!content || !Array.isArray(content)) {
             return res.status(400).json({ message: "content must be an array of strings" });
         }
-        const intro = await Intro.create({ content });
+        const intro = await Intro.create({ content, status });
         await UserLog.create({
             userId: req.user.id,
             log: "Intro content added",
@@ -27,7 +27,7 @@ exports.addIntro = async (req, res, next) => {
 
 exports.getIntro = async (req, res, next) => {
     try {
-        const intro = await Intro.findOne();
+        const intro = await Intro.find({ status: true });
 
         if (!intro) {
             return res.status(404).json({ message: "Intro not found" });
@@ -83,3 +83,35 @@ exports.deleteIntro = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.listIntro = async (req, res, next) => {
+    try {
+        const intro = await Intro.find();
+
+        if (!intro) {
+            return res.status(404).json({ message: "Intro not found" });
+        }
+
+        res.status(200).json({
+            data: intro
+        });
+    } catch (err) {
+        next(err)
+    }
+}
+
+exports.setIntroStatus = async (req, res, next) => {
+    const { id, status } = req.body;
+    try {
+        const intro = await Intro.findByIdAndUpdate(id, { status }, { new: true });
+        if (!intro) {
+            return res.status(404).json({ message: "Intro not found" });
+        }
+        res.status(200).json({
+            message: "Intro status updated",
+            data: intro
+        });
+    } catch (err) {
+        next(err);
+    }
+};

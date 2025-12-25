@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
+function formatDateTime(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12 || 12;
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+}
 
 export default function ServiceRequestDetails() {
     const { id } = useParams();
@@ -127,7 +140,7 @@ export default function ServiceRequestDetails() {
                 </div>
                 <div>
                     <div className="font-medium">Scheduled Date</div>
-                    <div className="text-gray-700">{request.scheduleService}</div>
+                    <div className="text-gray-700">{formatDateTime(request.scheduleService)}</div>
                 </div>
                 <div>
                     <div className="font-medium">Is Urgent?</div>
@@ -170,7 +183,7 @@ export default function ServiceRequestDetails() {
                     {Object.entries(request.statusTimestamps || {}).map(([status, time]) => (
                         <div key={status}>
                             <span className="font-medium">{status}:</span>{" "}
-                            <span className="text-gray-700">{time || "-"}</span>
+                            <span className="text-gray-700">{formatDateTime(time)}</span>
                         </div>
                     ))}
                 </div>

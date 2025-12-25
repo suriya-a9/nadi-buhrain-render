@@ -6,11 +6,13 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
+  const [permissions, setPermissions] = useState([]);
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
     setRole(null);
+    setPermissions([]);
   };
 
   const login = (jwtToken) => {
@@ -18,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     setToken(jwtToken);
     const decoded = jwtDecode(jwtToken);
     setRole(decoded.role);
+    setPermissions(decoded.permissions || []);
   };
 
   const isTokenExpired = (jwtToken) => {
@@ -39,6 +42,7 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken);
         const decoded = jwtDecode(storedToken);
         setRole(decoded.role);
+        setPermissions(decoded.permissions || []);
       }
     }
   }, []);
@@ -58,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ token, role, login, logout }}>
+    <AuthContext.Provider value={{ token, role, permissions, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

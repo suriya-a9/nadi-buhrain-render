@@ -4,6 +4,7 @@ import api from "../services/api";
 import Offcanvas from "../components/Offcanvas";
 import Table from "../components/Table";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Services() {
     const [services, setServices] = useState([]);
@@ -46,12 +47,15 @@ export default function Services() {
         if (form.serviceLogo) fd.append("serviceLogo", form.serviceLogo);
 
         if (form.id) fd.append("id", form.id);
-
-        await api.post(form.id ? "/service/edit" : "/service/add", fd);
-
-        loadServices();
-        setOpenCanvas(false);
-        setForm({ id: "", name: "", serviceImage: null, serviceLogo: null });
+        try {
+            const res = await api.post(form.id ? "/service/edit" : "/service/add", fd);
+            toast.success(res.data.message);
+            loadServices();
+            setOpenCanvas(false);
+            setForm({ id: "", name: "", serviceImage: null, serviceLogo: null });
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const editService = (s) => {
@@ -65,8 +69,13 @@ export default function Services() {
     };
 
     const deleteService = async (id) => {
-        await api.post("/service/delete", { id });
-        loadServices();
+        try {
+            const res = await api.post("/service/delete", { id });
+            toast.success(res.data.message);
+            loadServices();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
     const totalPages = Math.ceil(services.length / ITEMS_PER_PAGE);
 
@@ -93,6 +102,12 @@ export default function Services() {
 
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Name", key: "name" },
                     {
                         title: "Image",

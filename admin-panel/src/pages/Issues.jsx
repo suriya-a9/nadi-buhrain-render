@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Issues() {
     const [issuesList, setIssuesList] = useState([]);
@@ -21,8 +22,12 @@ export default function Issues() {
     const token = localStorage.getItem("token");
 
     const loadIssues = async () => {
-        const res = await api.get("/issue/");
-        setIssuesList(res.data.data);
+        try {
+            const res = await api.get("/issue/");
+            setIssuesList(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     useEffect(() => {
@@ -47,23 +52,32 @@ export default function Issues() {
         e.preventDefault();
         const payload = { ...form };
         if (editData) payload.id = editData._id;
-
-        await api.post(
-            editData ? "/issue/update" : "/issue/add",
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOpenCanvas(false);
-        loadIssues();
+        try {
+            const res = await api.post(
+                editData ? "/issue/update" : "/issue/add",
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadIssues();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const deleteIssue = async (id) => {
-        await api.post(
-            "/issue/delete",
-            { id },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        loadIssues();
+        try {
+            const res = await api.post(
+                "/issue/delete",
+                { id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadIssues();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
 
     const totalPages = Math.ceil(issuesList.length / ITEMS_PER_PAGE);
@@ -86,6 +100,12 @@ export default function Issues() {
             </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "Issue", key: "issue" },
                 ]}
                 data={paginatedIssues}

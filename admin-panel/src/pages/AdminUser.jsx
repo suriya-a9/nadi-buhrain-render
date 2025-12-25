@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Offcanvas from "../components/Offcanvas";
-
-const ROLES = [
-    { value: "admin", label: "Admin" },
-    { value: "inventory manager", label: "Inventory Manager" },
-    { value: "points manager", label: "Points Manager" },
-    { value: "service manager", label: "Service Manager" },
-];
+import toast from "react-hot-toast";
+import Table from "../components/Table";
+import Pagination from "../components/Pagination";
 
 export default function AdminUser() {
     const [admins, setAdmins] = useState([]);
+    const [roles, setRoles] = useState([]);
     const [openCanvas, setOpenCanvas] = useState(false);
     const [editData, setEditData] = useState(null);
     const [form, setForm] = useState({
         name: "",
         email: "",
         password: "",
-        role: "admin",
+        role: "",
     });
     const [loading, setLoading] = useState(false);
+
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(1);
 
     const token = localStorage.getItem("token");
 
@@ -32,8 +32,14 @@ export default function AdminUser() {
         setLoading(false);
     };
 
+    const fetchRoles = async () => {
+        const res = await api.get("/role/");
+        setRoles(res.data.data);
+    };
+
     useEffect(() => {
         fetchAdmins();
+        fetchRoles();
     }, []);
 
     const openCreate = () => {
@@ -41,7 +47,7 @@ export default function AdminUser() {
             name: "",
             email: "",
             password: "",
-            role: "admin",
+            role: roles[0]?._id || "",
         });
         setEditData(null);
         setOpenCanvas(true);
@@ -53,31 +59,56 @@ export default function AdminUser() {
             name: admin.name,
             email: admin.email,
             password: "",
-            role: admin.role,
+            role: admin.role?._id || admin.role,
         });
         setOpenCanvas(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (editData) {
-            await api.post(`/admin/${editData._id}`, {
-                name: form.name,
-                role: form.role,
-                ...(form.password ? { password: form.password } : {}),
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } else {
-            await api.post("/admin/register", form, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+
+        try {
+            let res;
+
+            if (editData) {
+                res = await api.post(
+                    `/admin/${editData._id}`,
+                    {
+                        name: form.name,
+                        role: form.role,
+                        ...(form.password ? { password: form.password } : {}),
+                    },
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+
+                toast.success(res.data.message);
+            } else {
+                res = await api.post("/admin/register", form, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                toast.success(res.data.message);
+            }
+
+            setOpenCanvas(false);
+            setForm({ name: "", email: "", password: "", role: "" });
+            setEditData(null);
+            fetchAdmins();
+
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message || "Something went wrong"
+            );
         }
-        setOpenCanvas(false);
-        setForm({ name: "", email: "", password: "", role: "admin" });
-        setEditData(null);
-        fetchAdmins();
     };
+
+    const totalPages = Math.ceil(admins.length / ITEMS_PER_PAGE);
+    const paginatedAdmins = admins.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div>
@@ -91,35 +122,46 @@ export default function AdminUser() {
                 </button>
             </div>
 
-            <table className="min-w-full bg-white border">
-                <thead>
-                    <tr>
-                        <th className="border px-4 py-2">Name</th>
-                        <th className="border px-4 py-2">Email</th>
-                        <th className="border px-4 py-2">Role</th>
-                        <th className="border px-4 py-2">Created At</th>
-                        <th className="border px-4 py-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {admins.map(admin => (
-                        <tr key={admin._id}>
-                            <td className="border px-4 py-2">{admin.name}</td>
-                            <td className="border px-4 py-2">{admin.email}</td>
-                            <td className="border px-4 py-2 capitalize">{admin.role}</td>
-                            <td className="border px-4 py-2">{new Date(admin.createdAt).toLocaleString()}</td>
-                            <td className="border px-4 py-2">
-                                <button
-                                    onClick={() => openEdit(admin)}
-                                    className="bg-yellow-500 text-white px-3 py-1 rounded"
-                                >
-                                    Edit
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table
+                columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
+                    { title: "Name", key: "name" },
+                    { title: "Email", key: "email" },
+                    {
+                        title: "Role",
+                        key: "role",
+                        render: (role) => role?.name || "",
+                    },
+                    {
+                        title: "Created At",
+                        key: "createdAt",
+                        render: (createdAt) =>
+                            new Date(createdAt).toLocaleString(),
+                    },
+                ]}
+                data={paginatedAdmins}
+                actions={(row) => (
+                    <button
+                        onClick={() => openEdit(row)}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded"
+                    >
+                        Edit
+                    </button>
+                )}
+            />
+
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
+            )}
 
             <Offcanvas
                 open={openCanvas}
@@ -156,8 +198,10 @@ export default function AdminUser() {
                             className="w-full border p-2 rounded"
                             required
                         >
-                            {ROLES.map(r => (
-                                <option key={r.value} value={r.value}>{r.label}</option>
+                            {roles.map(r => (
+                                <option key={r._id} value={r._id}>
+                                    {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
+                                </option>
                             ))}
                         </select>
                     </div>

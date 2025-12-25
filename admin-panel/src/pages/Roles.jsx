@@ -1,95 +1,99 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
 import toast from "react-hot-toast";
 
-export default function TechnicianSkills() {
-    const [technicianSkill, setTechnicianSkill] = useState([]);
+export default function Roles() {
+    const [rolesList, setRolesList] = useState([]);
     const [openCanvas, setOpenCanvas] = useState(false);
     const [editData, setEditData] = useState(null);
     const [form, setForm] = useState({
-        skill: "",
+        name: ""
     });
     const ITEMS_PER_PAGE = 10;
     const [currentPage, setCurrentPage] = useState(1);
+
     useEffect(() => {
         setCurrentPage(1);
-    }, [technicianSkill]);
+    }, [rolesList]);
     const token = localStorage.getItem("token");
-    const loadTechnicianSkill = async () => {
-        try {
-            const res = await api.get("/technical");
-            setTechnicianSkill(res.data.data);
-        } catch (err) {
-            toast.error(err.response?.data?.message);
-        }
+    const loadRoles = async () => {
+        const res = await api.get("/role/");
+        setRolesList(res.data.data);
     };
     useEffect(() => {
-        loadTechnicianSkill();
+        loadRoles();
     }, []);
     const openCreate = () => {
-        setForm({
-            skill: "",
-        });
+        setForm({ name: "" });
         setEditData(null);
         setOpenCanvas(true);
     };
-
     const openEdit = (item) => {
         setEditData(item);
         setForm({
-            skill: item.skill,
+            name: item.name,
         });
         setOpenCanvas(true);
     };
-    const saveTechnicianSkill = async (e) => {
+    const saveRole = async (e) => {
         e.preventDefault();
-        const payload = { ...form };
-        if (editData) payload.id = editData._id;
         try {
+            const payload = { ...form };
+            if (editData) payload.id = editData._id;
+
             const res = await api.post(
-                editData ? "/technical/update" : "/technical/add",
+                editData ? "/role/update" : "/role/add",
                 payload,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
             toast.success(res.data.message);
             setOpenCanvas(false);
-            loadTechnicianSkill();
+            loadRoles();
+
         } catch (err) {
-            toast.error(err.response?.data?.message);
+            toast.error(
+                err.response?.data?.message || "Something went wrong"
+            );
         }
     };
 
-    const deleteTechnicianSkill = async (id) => {
+    const deleteRole = async (id) => {
         try {
             const res = await api.post(
-                "/technical/delete",
+                "/role/delete",
                 { id },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
             toast.success(res.data.message);
-            loadTechnicianSkill();
+            loadRoles();
+
         } catch (err) {
-            toast.error(err.response?.data?.message);
+            toast.error(
+                err.response?.data?.message || "Something went wrong"
+            );
         }
     };
-    const totalPages = Math.ceil(technicianSkill.length / ITEMS_PER_PAGE);
-
-    const paginatedTechnicianSkill = technicianSkill.slice(
+    const totalPages = Math.ceil(rolesList.length /
+        ITEMS_PER_PAGE
+    );
+    const PaginatedRoles = rolesList.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Technician Skill Set</h2>
+                <h2 className="text-2xl font-semibold">Roles List</h2>
                 <button
                     onClick={openCreate}
                     className="bg-bgGreen text-white px-4 py-2 rounded"
                 >
-                    Add Skill
+                    Add Role
                 </button>
             </div>
             <Table
@@ -100,9 +104,9 @@ export default function TechnicianSkills() {
                         render: (_, __, idx) =>
                             (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
                     },
-                    { title: "Skill", key: "skill" },
+                    { title: "Name", key: "name" },
                 ]}
-                data={paginatedTechnicianSkill}
+                data={PaginatedRoles}
                 actions={(row) => (
                     <div className="flex gap-2">
                         <button
@@ -112,7 +116,7 @@ export default function TechnicianSkills() {
                             Edit
                         </button>
                         <button
-                            onClick={() => deleteTechnicianSkill(row._id)}
+                            onClick={() => deleteRole(row._id)}
                             className="bg-red-600 text-white px-3 py-1 rounded"
                         >
                             Delete
@@ -130,21 +134,21 @@ export default function TechnicianSkills() {
             <Offcanvas
                 open={openCanvas}
                 onClose={() => setOpenCanvas(false)}
-                title={editData ? "Edit Skill" : "Add Skill"}
+                title={editData ? "Edit Role" : "Add Role"}
             >
-                <form onSubmit={saveTechnicianSkill} className="space-y-4">
+                <form onSubmit={saveRole} className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-medium">Skill</label>
+                        <label className="block mb-1 font-medium">Name</label>
                         <input
                             type="text"
-                            value={form.skill}
-                            onChange={(e) => setForm({ ...form, skill: e.target.value })}
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
                             className="w-full border p-2 rounded"
                             required
                         />
                     </div>
                     <button className="w-full bg-bgGreen text-white py-2 rounded">
-                        {editData ? "Update Skill" : "Create Skill"}
+                        {editData ? "Update Role" : "Create Role"}
                     </button>
                 </form>
             </Offcanvas>

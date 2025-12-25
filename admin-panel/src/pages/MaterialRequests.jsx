@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import Table from "../components/Table";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function MaterialRequests() {
     const [requests, setRequests] = useState([]);
@@ -30,12 +31,15 @@ export default function MaterialRequests() {
     const updateStatus = async (id, status) => {
         setUpdatingId(id);
         try {
-            await api.post(
+            const res = await api.post(
                 "/material/request-status",
                 { id, status },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            toast.success(res.data.message);
             loadRequests();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
         } finally {
             setUpdatingId(null);
         }
@@ -54,6 +58,12 @@ export default function MaterialRequests() {
             </div>
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     {
                         title: "Technician",
                         key: "technicianId",

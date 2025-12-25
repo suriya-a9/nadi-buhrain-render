@@ -59,7 +59,8 @@ exports.verificaionAccountList = async (req, res, next) => {
             $or: [
                 { accountVerification: "not verified" },
                 { accountVerification: "rejected" }
-            ]
+            ],
+            signUpCompleted: "true"
         })
             .populate('accountTypeId')
             .lean();
@@ -171,3 +172,19 @@ exports.usersList = async (req, res, next) => {
         next(err)
     }
 }
+
+exports.setUserStatus = async (req, res, next) => {
+    const { id, status } = req.body;
+    try {
+        const user = await UserAccount.findByIdAndUpdate(id, { accountStatus: status }, { new: true });
+        if (!user) {
+            return res.status(404).json({ message: "user not found" });
+        }
+        res.status(200).json({
+            message: "user status updated",
+            data: user
+        });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -3,6 +3,7 @@ import api from "../services/api";
 import Table from "../components/Table";
 import Offcanvas from "../components/Offcanvas";
 import Pagination from "../components/Pagination";
+import toast from "react-hot-toast";
 
 export default function Technicians() {
     const [technicians, setTechnicians] = useState([]);
@@ -24,8 +25,12 @@ export default function Technicians() {
         setCurrentPage(1);
     }, [technicians]);
     const loadSkills = async () => {
-        const res = await api.get("/technical");
-        setSkills(res.data.data);
+        try {
+            const res = await api.get("/technical");
+            setSkills(res.data.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
     useEffect(() => {
         loadTechnicians();
@@ -82,17 +87,32 @@ export default function Technicians() {
         Object.keys(form).forEach((key) => fd.append(key, form[key]));
 
         if (editData) fd.append("id", editData._id);
-
-        await api.post(
-            editData ? "/technician/update-profile" : "/technician/register",
-            fd,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        setOpenCanvas(false);
-        loadTechnicians();
+        try {
+            const res = await api.post(
+                editData ? "/technician/update-profile" : "/technician/register",
+                fd,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            setOpenCanvas(false);
+            loadTechnicians();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
     };
-
+    const toggleTechnicianStatus = async (tech) => {
+        try {
+            await api.post(
+                "/technician/set-status",
+                { id: tech._id, status: !tech.status },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success("Technician status updated");
+            loadTechnicians();
+        } catch (err) {
+            toast.error("Failed to update technician status");
+        }
+    };
     const deleteTechnician = async (id) => {
         await api.post(
             "/technician/delete",
@@ -121,6 +141,12 @@ export default function Technicians() {
 
             <Table
                 columns={[
+                    {
+                        title: "s/no",
+                        key: "sno",
+                        render: (_, __, idx) =>
+                            (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+                    },
                     { title: "First Name", key: "firstName" },
                     { title: "Last Name", key: "lastName" },
                     { title: "Mobile", key: "mobile" },
@@ -130,6 +156,11 @@ export default function Technicians() {
                         title: "Role",
                         key: "role",
                         render: (role) => role?.skill || "-",
+                    },
+                    {
+                        title: "Enabled",
+                        key: "status",
+                        render: (status) => status ? "Yes" : "No",
                     },
                 ]}
                 data={paginatedTechnicians}
@@ -141,7 +172,12 @@ export default function Technicians() {
                         >
                             Edit
                         </button>
-
+                        <button
+                            onClick={() => toggleTechnicianStatus(row)}
+                            className={`px-3 py-1 rounded text-white ${row.status ? "bg-red-600" : "bg-green-600"}`}
+                        >
+                            {row.status ? "Disable" : "Enable"}
+                        </button>
                         <button
                             onClick={() => deleteTechnician(row._id)}
                             className="bg-red-600 text-white px-3 py-1 rounded"
