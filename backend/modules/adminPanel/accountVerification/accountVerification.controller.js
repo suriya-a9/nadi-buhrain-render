@@ -55,13 +55,7 @@ exports.verifyAccount = async (req, res, next) => {
 
 exports.verificaionAccountList = async (req, res, next) => {
     try {
-        const users = await UserAccount.find({
-            $or: [
-                { accountVerification: "not verified" },
-                { accountVerification: "rejected" }
-            ],
-            signUpCompleted: "true"
-        })
+        const users = await UserAccount.find({ status: "completed" })
             .populate('accountTypeId')
             .lean();
 
