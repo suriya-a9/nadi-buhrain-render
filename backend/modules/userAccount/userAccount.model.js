@@ -16,7 +16,7 @@ const userAccountSchema = new mongoose.Schema({
         },
         mobileNumber: {
             type: Number,
-            unique: true
+            // unique: true
         },
         email: {
             type: String,
