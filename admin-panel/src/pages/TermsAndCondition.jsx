@@ -20,7 +20,7 @@ export default function TermsAndCondition() {
     const token = localStorage.getItem("token");
     const loadTermsAndCondition = async () => {
         try {
-            const res = await api.get("/terms/");
+            const res = await api.get("/terms/list");
             setTermsAndCondition(res.data.data);
         } catch (err) {
             toast.error(err.response?.data?.message);
@@ -74,6 +74,19 @@ export default function TermsAndCondition() {
             toast.error(err.response?.data?.message);
         }
     };
+    const setEnabled = async (row, enabled) => {
+        try {
+            const res = await api.post(
+                "/terms/set-enabled",
+                { id: row._id, enabled },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success(res.data.message);
+            loadTermsAndCondition();
+        } catch (err) {
+            toast.error(err.response?.data?.message);
+        }
+    };
     const totalPages = Math.ceil(termsAndCondition.length / ITEMS_PER_PAGE);
 
     const paginatedTermsAndCondition = termsAndCondition.slice(
@@ -85,6 +98,15 @@ export default function TermsAndCondition() {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Terms and Condition</h2>
+                <button
+                    className="bg-bgGreen text-white px-4 py-2 rounded"
+                    onClick={() => {
+                        setForm({ id: "", content: "" });
+                        setOpenCanvas(true);
+                    }}
+                >
+                    + Add Terms and Condition
+                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,6 +131,12 @@ export default function TermsAndCondition() {
                                 onClick={() => deleteTermsAndCondition(item._id)}
                             >
                                 Delete
+                            </button>
+                            <button
+                                className={`px-3 py-1 rounded ${item.enabled ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 hover:bg-gray-500"} text-white`}
+                                onClick={() => setEnabled(item, !item.enabled)}
+                            >
+                                {item.enabled ? "Disable" : "Enable"}
                             </button>
                         </div>
                     </div>

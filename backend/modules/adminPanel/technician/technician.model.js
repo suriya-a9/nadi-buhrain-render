@@ -12,10 +12,12 @@ const technicianSchema = new mongoose.Schema({
         type: String
     },
     email: {
-        type: String
+        type: String,
+        unique: true
     },
     mobile: {
-        type: Number
+        type: Number,
+        unique: true
     },
     gender: {
         type: String,

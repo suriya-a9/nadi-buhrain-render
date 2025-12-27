@@ -34,6 +34,7 @@ import AdminUser from "./pages/AdminUser";
 import RoleManager from "./pages/RoleManager";
 import Roles from "./pages/Roles";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
@@ -65,6 +66,15 @@ export default function App() {
                 </PublicRoute>
               }
             />
+            <Route
+              path="/reset-password/:token"
+              element={
+                <PublicRoute>
+                  <ResetPassword />
+                </PublicRoute>
+              }
+            />
+
             <Route
               path="/"
               element={

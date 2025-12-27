@@ -2,7 +2,10 @@ const Admin = require('./admin.model');
 const jwt = require('jsonwebtoken');
 const config = require('../../config/default');
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 const UserLog = require("../userLogs/userLogs.model");
+const resetPasswordTemplate = require("../../template/resetPassword.template");
+const sendMail = require("../../utils/mailer");
 
 exports.adminRegister = async (req, res, next) => {
     const { name, email, password, role } = req.body;
@@ -106,21 +109,102 @@ exports.updateAdmin = async (req, res, next) => {
     }
 };
 
-exports.resetPassword = async (req, res, next) => {
-    const { email, password } = req.body;
+exports.forgotPassword = async (req, res, next) => {
+    const { email } = req.body;
+
     try {
-        const user = await Admin.findOne({ email });
-        if (!user) {
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
             return res.status(404).json({ success: false, message: "Admin not found" });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
-        await user.save();
-        return res.status(200).json({
-            success: true,
-            message: "Password updated successfully"
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        admin.resetPasswordToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        admin.resetPasswordExpires = Date.now() + 2 * 60 * 1000;
+        await admin.save();
+
+        const resetUrl = `${config.frontend}/reset-password/${resetToken}`;
+
+        const html = resetPasswordTemplate({
+            name: admin.name,
+            resetUrl,
         });
+
+        await sendMail({
+            to: admin.email,
+            subject: "Reset Your Admin Password",
+            html,
+        });
+
+        res.json({ success: true, message: "Reset link sent to email" });
     } catch (err) {
         next(err);
     }
 };
+
+exports.resetPassword = async (req, res, next) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    try {
+        const hashedToken = require("crypto")
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const admin = await Admin.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (!admin) {
+            return res.status(400).json({ success: false, message: "Invalid or expired token" });
+        }
+
+        admin.password = await bcrypt.hash(password, 10);
+        admin.resetPasswordToken = undefined;
+        admin.resetPasswordExpires = undefined;
+
+        await admin.save();
+        res.json({ success: true, message: "Password reset successful" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.deleteAdminUser = async () => {
+    const { id } = req.body;
+    try {
+        if (!req.user.id) {
+            return res.status(401).json({
+                success: false,
+                message: 'user id needed'
+            })
+        }
+        const adminUser = await Admin.findByIdAndDelete(id);
+        if (!adminUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'user not found'
+            })
+        }
+        res.status(200).json({
+            success: true,
+            message: "Admin user deleted"
+        })
+        await UserLog.create({
+            userId: req.user.id,
+            log: "Deleted admin user",
+            status: "Deleted",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        });
+    } catch (err) {
+        next(err)
+    }
+}

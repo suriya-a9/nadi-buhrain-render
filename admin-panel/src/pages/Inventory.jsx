@@ -123,6 +123,19 @@ export default function Inventory() {
         }
     };
 
+    useEffect(() => {
+        const lowStockProducts = inventory.filter(item => {
+            const qty = Number(item.quantity);
+            return !isNaN(qty) && qty <= 10;
+        });
+        if (lowStockProducts.length > 0) {
+            toast.error(
+                `Alert: ${lowStockProducts.map(p => p.productName).join(", ")} ${lowStockProducts.length > 1 ? "have" : "has"
+                } low stock`
+            );
+        }
+    }, [inventory]);
+
     const totalPages = Math.ceil(inventory.length / ITEMS_PER_PAGE);
 
     const paginatedInventory = inventory.slice(
@@ -159,9 +172,9 @@ export default function Inventory() {
                         render: (stock, row) => (
                             <button
                                 onClick={() => toggleStock(row)}
-                                className={`px-3 py-1 rounded ${stock ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}
+                                className={`px-3 py-1 rounded ${stock ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}
                             >
-                                {stock ? "In Stock" : "Out of Stock"}
+                                {stock ? "Disable" : "Enable"}
                             </button>
                         ),
                     },

@@ -1,12 +1,15 @@
 const express = require('express');
-const { adminRegister, adminLogin, listAdmins, updateAdmin, resetPassword } = require('./admin.controller');
+const { adminRegister, adminLogin, listAdmins, updateAdmin, forgotPassword, resetPassword, deleteAdminUser } = require('./admin.controller');
+const auth = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/register", adminRegister);
 router.post('/login', adminLogin);
 router.get("/list", listAdmins);
-router.post("/forgot-password", resetPassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 router.post("/:id", updateAdmin);
+router.post("/delete", auth, deleteAdminUser);
 
 module.exports = router;

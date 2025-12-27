@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 export default function Services() {
     const [services, setServices] = useState([]);
     const [openCanvas, setOpenCanvas] = useState(false);
+    const [search, setSearch] = useState("");
 
     const [form, setForm] = useState({
         id: "",
@@ -77,27 +78,38 @@ export default function Services() {
             toast.error(err.response?.data?.message);
         }
     };
-    const totalPages = Math.ceil(services.length / ITEMS_PER_PAGE);
+    const filteredServices = services.filter(s =>
+        s.name.toLowerCase().includes(search.toLowerCase())
+    );
 
-    const paginatedServices = services.slice(
+    const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
+    const paginatedServices = filteredServices.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
                 <h2 className="text-2xl font-semibold">Services</h2>
-
-                <button
-                    className="bg-bgGreen text-white px-4 py-2 rounded"
-                    onClick={() => {
-                        setForm({ id: "", name: "", serviceImage: null, serviceLogo: null });
-                        setOpenCanvas(true);
-                    }}
-                >
-                    + Add Service
-                </button>
+                <div className="flex gap-2 flex-1 md:justify-end">
+                    <input
+                        type="text"
+                        placeholder="Search services"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="border p-2 rounded w-48"
+                    />
+                    <button
+                        className="bg-bgGreen text-white px-4 py-2 rounded"
+                        onClick={() => {
+                            setForm({ id: "", name: "", serviceImage: null, serviceLogo: null });
+                            setOpenCanvas(true);
+                        }}
+                    >
+                        + Add Service
+                    </button>
+                </div>
             </div>
 
             <Table
@@ -182,7 +194,7 @@ export default function Services() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="block mb-1 font-medium">Service Image</label>
+                        <label className="block mb-1 font-medium">Service Image <span className="text-xs">(size: 375px X 375px)</span></label>
                         <input
                             type="file"
                             name="serviceImage"
@@ -192,7 +204,7 @@ export default function Services() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="block mb-1 font-medium">Service Logo</label>
+                        <label className="block mb-1 font-medium">Service Logo <span className="text-xs">(size: 64px X 64px)</span></label>
                         <input
                             type="file"
                             name="serviceLogo"

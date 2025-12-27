@@ -7,6 +7,7 @@ const config = require('../../config/default');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Notification = require('../adminPanel/notification/notification.model');
+const sendPushNotification = require("../../utils/sendPush");
 const UserLog = require('../userLogs/userLogs.model');
 
 exports.startSignUp = async (req, res, next) => {
@@ -33,9 +34,13 @@ exports.saveBasicInfo = async (req, res, next) => {
     const { userId, fullName, mobileNumber, email, gender, password } = req.body;
     try {
         // const existingUser = await UserAccount.findOne({
-        //     "basicInfo.mobileNumber": mobileNumber,
-        //     _id: { $ne: userId }
+        //     _id: { $ne: userId },
+        //     $or: [
+        //         { "basicInfo.mobileNumber": mobileNumber },
+        //         { "basicInfo.email": email }
+        //     ]
         // });
+
         // if (existingUser) {
         //     return res.status(400).json({
         //         message: "Account already registered"
@@ -89,25 +94,49 @@ exports.saveAddress = async (req, res, next) => {
 
 exports.sendOtp = async (req, res, next) => {
     const { userId } = req.body;
+
     try {
-        if (!req.body.userId) {
+        if (!userId) {
             return res.status(400).json({
                 message: "user id needed"
-            })
+            });
         }
+
+        const user = await UserAccount.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
         await Otp.create({
             userId,
             otp,
             expiresAt: Date.now() + 1 * 60 * 1000,
-        })
-        await UserAccount.findByIdAndUpdate(userId, { step: 4, status: "pending_otp" });
+        });
 
-        res.json({ otp, message: "OTP sent" });
+        await UserAccount.findByIdAndUpdate(userId, {
+            step: 4,
+            status: "pending_otp"
+        });
+
+        await sendPushNotification(
+            user.fcmToken,
+            "OTP Verification",
+            `Your OTP is ${otp}. Valid for 1 minute.`
+        );
+
+        res.json({
+            message: "OTP sent"
+        });
+
     } catch (err) {
         next(err);
     }
-}
+};
 
 exports.verifyOtp = async (req, res, next) => {
     const { userId, otp } = req.body;
@@ -177,11 +206,24 @@ exports.addFamilyMember = async (req, res, next) => {
         if (!userId) {
             return res.status(400).json({ message: "user id needed" });
         }
-        // const existingUser = await UserAccount.findOne({ "basicInfo.mobileNumber": mobile });
-        // const existingFamily = await FamilyMember.findOne({ mobile });
+        // const existingUser = await UserAccount.findOne({
+        //     $or: [
+        //         { "basicInfo.mobileNumber": mobile },
+        //         { "basicInfo.email": email }
+        //     ]
+        // });
+
+        // const existingFamily = await FamilyMember.findOne({
+        //     $or: [
+        //         { mobile },
+        //         { email }
+        //     ]
+        // });
+
         // if (existingUser || existingFamily) {
-        //     return res.status(400).json({ message: "Mobile number already registered" });
+        //     return res.status(400).json({ message: "Mobile number or email already registered" });
         // }
+
         const addressDoc = await Address.create({
             ...address
         });
@@ -216,7 +258,7 @@ exports.addFamilyMember = async (req, res, next) => {
 };
 
 exports.termsAndConditionVerify = async (req, res, next) => {
-    const { userId } = req.body;
+    const { userId, fcmToken } = req.body;
     try {
         if (!req.body.userId) {
             res.status(400).json({
@@ -224,8 +266,9 @@ exports.termsAndConditionVerify = async (req, res, next) => {
             })
         }
         await UserAccount.findByIdAndUpdate(userId, {
-            termsVerfied: true
-        })
+            termsVerfied: true,
+            ...(fcmToken && { fcmToken })
+        });
         res.status(200).json({
             message: "verified successfully"
         })
@@ -391,6 +434,89 @@ exports.signIn = async (req, res, next) => {
             logo: "/assets/user-login-logo.webp",
             time: new Date()
         })
+        res.status(200).json({
+            name: user.basicInfo.fullName,
+            token: token,
+            accountType: accountType ? accountType.type : null
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+exports.sendSignInOtp = async (req, res, next) => {
+    const { mobileNumber } = req.body;
+    try {
+        if (!mobileNumber) {
+            return res.status(400).json({ message: "Mobile number required" });
+        }
+        const user = await UserAccount.findOne({ "basicInfo.mobileNumber": mobileNumber });
+        if (!user) {
+            return res.status(404).json({ message: "No account found with this mobile number" });
+        }
+        if (user.status !== "completed") {
+            return res.status(401).json({ message: "Account not created. Kindly register" });
+        }
+        if (user.accountStatus !== true) {
+            return res.status(401).json({ message: "Account disabled" });
+        }
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        await Otp.create({
+            userId: user._id,
+            otp,
+            expiresAt: Date.now() + 2 * 60 * 1000,
+        });
+        res.json({
+            success: true,
+            otp,
+            message: "OTP sent"
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.signInWithOtp = async (req, res, next) => {
+    const { mobileNumber, otp } = req.body;
+    try {
+        if (!mobileNumber || !otp) {
+            return res.status(400).json({ message: "Mobile number and OTP required" });
+        }
+        const user = await UserAccount.findOne({ "basicInfo.mobileNumber": mobileNumber });
+        if (!user) {
+            return res.status(404).json({ message: "No account found with this mobile number" });
+        }
+        if (user.status !== "completed") {
+            return res.status(401).json({ message: "Account not created. Kindly register" });
+        }
+        if (user.accountStatus !== true) {
+            return res.status(401).json({ message: "Account disabled" });
+        }
+        const record = await Otp.findOne({ userId: user._id }).sort({ createdAt: -1 });
+        if (!record) {
+            return res.status(400).json({ message: "OTP not found" });
+        }
+        if (new Date(record.expiresAt).getTime() < Date.now()) {
+            await Otp.deleteMany({ userId: user._id });
+            return res.status(400).json({ message: "OTP expired" });
+        }
+        if (record.otp !== otp) {
+            return res.status(400).json({ message: "OTP mismatch" });
+        }
+        await Otp.deleteMany({ userId: user._id });
+        const accountType = await Account.findById(user.accountTypeId);
+        const token = jwt.sign(
+            { id: user._id },
+            config.jwt,
+            { expiresIn: '30d' }
+        );
+        await UserLog.create({
+            userId: user._id,
+            log: 'Signed In with OTP',
+            status: "Signed In",
+            logo: "/assets/user-login-logo.webp",
+            time: new Date()
+        });
         res.status(200).json({
             name: user.basicInfo.fullName,
             token: token,

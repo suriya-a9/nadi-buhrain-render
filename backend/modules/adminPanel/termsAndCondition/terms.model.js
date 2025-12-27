@@ -2,7 +2,12 @@ const mongoose = require('mongoose');
 
 const termsSchema = new mongoose.Schema({
     content: {
-        type: [String],
+        type: String,
+        required: true,
+    },
+    enabled: {
+        type: Boolean,
+        default: true,
     }
 }, { timestamps: true });
 

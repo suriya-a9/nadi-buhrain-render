@@ -12,6 +12,18 @@ exports.registerTechnician = async (req, res, next) => {
                 message: "user id required"
             })
         }
+        const existingUser = await Technician.findOne({
+            $or: [
+                { "email": email },
+                { "mobile": mobile }
+            ]
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "Account already registered"
+            });
+        }
         const image = req.files?.image?.[0]?.filename;
         const hashedPassword = await bcrypt.hash(password, 10);
         if (req.file) {

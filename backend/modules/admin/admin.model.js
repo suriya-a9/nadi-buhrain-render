@@ -18,6 +18,8 @@ const adminSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Role"
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 }, { timestamps: true });
 
 const Admin = mongoose.model("Admin", adminSchema);

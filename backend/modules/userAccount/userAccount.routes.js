@@ -22,4 +22,7 @@ router.post('/profile-update', controller.updateBasicInfoAndAddress);
 
 router.post('/signin', controller.signIn)
 
+router.post('/send-signin-otp', controller.sendSignInOtp);
+router.post('/signin-otp', controller.signInWithOtp);
+
 module.exports = router;

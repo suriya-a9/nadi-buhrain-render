@@ -7,6 +7,8 @@ import Pagination from "../components/Pagination";
 
 export default function AdminUser() {
     const [admins, setAdmins] = useState([]);
+    const [search, setSearch] = useState("");
+    const [roleFilter, setRoleFilter] = useState("");
     const [roles, setRoles] = useState([]);
     const [openCanvas, setOpenCanvas] = useState(false);
     const [editData, setEditData] = useState(null);
@@ -18,7 +20,7 @@ export default function AdminUser() {
     });
     const [loading, setLoading] = useState(false);
 
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 5;
     const [currentPage, setCurrentPage] = useState(1);
 
     const token = localStorage.getItem("token");
@@ -104,22 +106,51 @@ export default function AdminUser() {
         }
     };
 
-    const totalPages = Math.ceil(admins.length / ITEMS_PER_PAGE);
-    const paginatedAdmins = admins.slice(
+    const filteredAdmins = admins.filter(admin => {
+        const matchesSearch =
+            admin.name.toLowerCase().includes(search.toLowerCase()) ||
+            admin.email.toLowerCase().includes(search.toLowerCase());
+        const matchesRole = roleFilter ? (admin.role?._id === roleFilter || admin.role === roleFilter) : true;
+        return matchesSearch && matchesRole;
+    });
+
+    const totalPages = Math.ceil(filteredAdmins.length / ITEMS_PER_PAGE);
+    const paginatedAdmins = filteredAdmins.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
                 <h2 className="text-2xl font-semibold">Admin Users</h2>
-                <button
-                    onClick={openCreate}
-                    className="bg-bgGreen text-white px-4 py-2 rounded"
-                >
-                    Add Admin User
-                </button>
+                <div className="flex gap-2 flex-1 md:justify-end">
+                    <input
+                        type="text"
+                        placeholder="Search by name or email"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="border p-2 rounded w-48"
+                    />
+                    <select
+                        value={roleFilter}
+                        onChange={e => setRoleFilter(e.target.value)}
+                        className="border p-2 rounded w-40"
+                    >
+                        <option value="">All Roles</option>
+                        {roles.map(r => (
+                            <option key={r._id} value={r._id}>
+                                {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={openCreate}
+                        className="bg-bgGreen text-white px-4 py-2 rounded"
+                    >
+                        Add Admin User
+                    </button>
+                </div>
             </div>
 
             <Table

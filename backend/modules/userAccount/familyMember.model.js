@@ -10,8 +10,14 @@ const familyMemberSchema = new mongoose.Schema({
         type: String,
         enum: ["spouse", "daughter", "son", "father", "mother"]
     },
-    mobile: Number,
-    email: String,
+    mobile: {
+        type: Number,
+        // unique: true
+    },
+    email: {
+        type: String,
+        // unique: true
+    },
     password: String,
     gender: {
         type: String,

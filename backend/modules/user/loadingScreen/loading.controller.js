@@ -28,14 +28,14 @@ exports.uploadLoadingScreen = async (req, res, next) => {
 
 exports.loadingScreen = async (req, res, next) => {
   try {
-    const loadingData = await Loading.find();
+    const loadingData = await Loading.find({ enabled: true });
 
     if (!loadingData.length) {
       return res.status(200).json({ data: null });
     }
 
     res.status(200).json({
-      data: loadingData[0]
+      data: loadingData
     });
   } catch (err) {
     next(err);
@@ -109,3 +109,28 @@ exports.deleteLoadingScreen = async (req, res, next) => {
     next(err)
   }
 }
+
+exports.listAllLoadingScreens = async (req, res, next) => {
+  try {
+    const loadingData = await Loading.find();
+    res.status(200).json({ data: loadingData });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.setLoadingScreenEnabled = async (req, res, next) => {
+  try {
+    const { id, enabled } = req.body;
+    if (!id || typeof enabled !== "boolean") {
+      return res.status(400).json({ message: "ID and enabled(boolean) required" });
+    }
+    const loadingItem = await Loading.findByIdAndUpdate(id, { enabled }, { new: true });
+    if (!loadingItem) {
+      return res.status(404).json({ message: "Loading screen not found" });
+    }
+    res.status(200).json({ message: "Status updated", data: loadingItem });
+  } catch (err) {
+    next(err);
+  }
+};
